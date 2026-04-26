@@ -565,11 +565,7 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
 // ══════════════════════════════════════════
 // CONFIG - Remplacer par votre URL Render
 // ══════════════════════════════════════════
-const API = window.location.hostname === 'localhost'
-  ? 'http://localhost:8000'
-  : `${window.location.origin.replace('5500','8000')}`;
-// ↑ Sur Render, l'URL sera automatiquement la même origine
-// Si séparé: const API = 'https://syndongo-api.onrender.com'
+const API = 'https://syndongo-api.onrender.com';
 
 let TOKEN = localStorage.getItem('syndongo_token');
 let ME = JSON.parse(localStorage.getItem('syndongo_user') || 'null');
