@@ -371,6 +371,19 @@ def create_user(req: UserCreate, user=Depends(require_role("superviseur","direct
         conn.close()
     return {"id": uid, "message": f"Compte {req.prenom} {req.nom} créé"}
 
+@app.patch("/me")
+def update_me(req: UserUpdate, user=Depends(get_current_user)):
+    conn = get_db()
+    updates, params = [], []
+    if req.nom: updates.append("nom=?"); params.append(req.nom)
+    if req.prenom: updates.append("prenom=?"); params.append(req.prenom)
+    if req.password: updates.append("password=?"); params.append(hash_pw(req.password))
+    if not updates: raise HTTPException(400, "Aucun champ à modifier")
+    params.append(user["id"])
+    conn.execute(f"UPDATE users SET {','.join(updates)} WHERE id=?", params)
+    conn.commit(); conn.close()
+    return {"message": "Profil mis à jour"}
+
 @app.patch("/users/{user_id}")
 def update_user(user_id: str, req: UserUpdate, user=Depends(require_role("superviseur","directeur"))):
     conn = get_db()

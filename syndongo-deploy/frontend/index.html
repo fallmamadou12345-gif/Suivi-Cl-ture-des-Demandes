@@ -143,21 +143,7 @@ option{background:var(--s1);}
 }
 .btn-login-main:active{transform:translateY(0);}
 
-.demo-access-label{
-  text-align:center;font-size:9px;font-family:var(--mono);color:var(--t3);
-  text-transform:uppercase;letter-spacing:1.5px;margin-top:22px;margin-bottom:7px;
-  display:flex;align-items:center;gap:8px;
-}
-.demo-access-label::before,.demo-access-label::after{content:'';flex:1;height:1px;background:var(--b1);}
 
-.login-demos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
-.demo-btn{
-  padding:5px 3px;border-radius:6px;font-size:9px;font-weight:600;
-  cursor:pointer;border:1px solid rgba(74,85,128,.2);
-  background:rgba(11,13,18,.5);color:var(--t3);
-  text-align:center;transition:.15s;font-family:var(--mono);
-}
-.demo-btn:hover{color:var(--t2);border-color:var(--b2);background:rgba(30,36,56,.6);}
 
 .login-err{background:rgba(255,61,90,.1);border:1px solid rgba(255,61,90,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin-bottom:14px;}
 
@@ -418,12 +404,6 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
       </div>
     </div>
     <button class="btn btn-login-main btn-full" id="loginBtn" onclick="doLogin()">Se connecter →</button>
-    <div class="demo-access-label">Accès démo</div>
-    <div class="login-demos">
-      <div class="demo-btn" onclick="quickLogin('directeur@syndongo.sn','Admin2025!')">👑 Directeur</div>
-      <div class="demo-btn" onclick="quickLogin('superviseur@syndongo.sn','Super2025!')">🔰 Superviseur</div>
-      <div class="demo-btn" onclick="quickLogin('amadou@syndongo.sn','Agent2025!')">👤 Agent</div>
-    </div>
     <div class="login-footer">© 2025 SynDongo · Tous droits réservés</div>
   </div>
 </div>
@@ -591,6 +571,34 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
       </div>
     </div>
 
+    <!-- VIEW: Mon Profil (tous rôles) -->
+    <div class="view" id="view-profile">
+      <div class="view-title">👤 Mon Profil</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:900px">
+        <div class="card p16">
+          <div class="sh-title" style="margin-bottom:14px">Informations du compte</div>
+          <div class="ib">
+            <div class="ib-row"><span class="ib-k">Email</span><span class="ib-v" id="pEmail">-</span></div>
+            <div class="ib-row"><span class="ib-k">Rôle</span><span class="ib-v" id="pRole">-</span></div>
+            <div class="ib-row"><span class="ib-k">Créé le</span><span class="ib-v" id="pCreated">-</span></div>
+            <div class="ib-row"><span class="ib-k">Dernière connexion</span><span class="ib-v" id="pLastLogin">-</span></div>
+          </div>
+          <div class="sh-title" style="margin-bottom:10px;margin-top:16px">Modifier mes informations</div>
+          <div class="form-grid2">
+            <div class="form-group"><label class="form-label">Nom</label><input class="form-input" id="pNom" placeholder="Nom"></div>
+            <div class="form-group"><label class="form-label">Prénom</label><input class="form-input" id="pPrenom" placeholder="Prénom"></div>
+          </div>
+          <button class="btn btn-acc btn-sm" onclick="saveProfile()">Enregistrer les modifications</button>
+        </div>
+        <div class="card p16">
+          <div class="sh-title" style="margin-bottom:14px">Changer le mot de passe</div>
+          <div class="form-group"><label class="form-label">Nouveau mot de passe</label><input class="form-input" id="pPwNew" type="password" placeholder="Nouveau mot de passe (min. 6 car.)"></div>
+          <div class="form-group"><label class="form-label">Confirmer le mot de passe</label><input class="form-input" id="pPwConfirm" type="password" placeholder="Répéter le mot de passe"></div>
+          <button class="btn btn-grn btn-sm" onclick="changePassword()">Changer le mot de passe</button>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -631,6 +639,38 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
       <div class="flex gap8 jc-sb" style="margin-top:8px">
         <button class="btn btn-ghost" onclick="closeAgentModal()">Annuler</button>
         <button class="btn btn-acc" onclick="createAgent()">Créer le compte →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL EDIT AGENT ══ -->
+<div class="modal-overlay" id="editAgentModal" onclick="if(event.target===this)closeEditAgentModal()">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <div><div class="modal-title">Modifier un compte</div><div class="modal-sub" id="editAgentSub">-</div></div>
+      <div class="close-x" onclick="closeEditAgentModal()">×</div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editAgentId">
+      <div class="form-grid2">
+        <div class="form-group"><label class="form-label">Nom*</label><input class="form-input" id="eaNom" placeholder="Fall"></div>
+        <div class="form-group"><label class="form-label">Prénom*</label><input class="form-input" id="eaPrenom" placeholder="Mamadou"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Email (lecture seule)</label><input class="form-input" id="eaEmail" type="email" disabled style="opacity:.45"></div>
+      <div class="form-grid2">
+        <div class="form-group"><label class="form-label">Nouveau mot de passe</label><input class="form-input" id="eaPw" type="password" placeholder="Laisser vide = inchangé"></div>
+        <div class="form-group"><label class="form-label">Rôle</label>
+          <select class="form-select" id="eaRole">
+            <option value="agent">Agent Call Center</option>
+            <option value="superviseur">Superviseur</option>
+            <option value="directeur">Directeur</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap8 jc-sb" style="margin-top:8px">
+        <button class="btn btn-ghost" onclick="closeEditAgentModal()">Annuler</button>
+        <button class="btn btn-acc" onclick="saveEditAgent()">Enregistrer →</button>
       </div>
     </div>
   </div>
@@ -774,6 +814,9 @@ function buildSidebar() {
       <button class="sb-item" onclick="goViewFilter('tickets','Escaladé')"><span class="sb-ico">🚨</span>Urgences & escalades<span class="sb-badge sbb-red" id="sb-escalade">-</span></button>
       <button class="sb-item" onclick="goView('tickets')"><span class="sb-ico">🎫</span>Tous les tickets</button>`;
   }
+  html += `
+      <div class="sb-sec">Compte</div>
+      <button class="sb-item" onclick="goView('profile')"><span class="sb-ico">👤</span>Mon profil</button>`;
   sb.innerHTML = html;
 }
 
@@ -799,6 +842,7 @@ function goView(name) {
   else if (name === 'tickets') loadTickets();
   else if (name === 'agents') loadAgents();
   else if (name === 'analytics') loadAnalytics();
+  else if (name === 'profile') loadProfile();
 }
 
 // ══════════════════════════════════════════
@@ -942,12 +986,17 @@ function renderTicketModal(t) {
     return `<div class="sf-step"><div class="sf-dot ${cls}">${i<idx?'✓':i+1}</div><span class="sf-lbl ${lbl}">${s}</span></div>${i<4?'<span class="sf-arr">→</span>':''}`;
   }).join('');
 
-  const acts = (t.activity||[]).map(a => {
-    if (a.user_nom==='Système') return `<div class="act-sys">🤖 ${a.contenu} · ${fmtTime(a.created_at)}</div>`;
-    const init = a.user_nom.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    return `<div class="act-item"><div class="act-av" style="background:var(--acc)">${init}</div>
-      <div class="act-box"><div class="act-who">${a.user_nom}</div><div class="act-txt">${a.contenu}</div><div class="act-ts">${fmtDate(a.created_at)} ${fmtTime(a.created_at)}</div></div></div>`;
-  }).join('')||'<div class="act-sys">Aucune activité enregistrée</div>';
+  const allActs = t.activity || [];
+  window._ticketActFull = allActs;
+  const fmtAct = a => a.user_nom==='Système'
+    ? `<div class="act-sys">🤖 ${a.contenu} · ${fmtTime(a.created_at)}</div>`
+    : `<div class="act-item"><div class="act-av" style="background:var(--acc)">${a.user_nom.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div><div class="act-box"><div class="act-who">${a.user_nom}</div><div class="act-txt">${a.contenu}</div><div class="act-ts">${fmtDate(a.created_at)} ${fmtTime(a.created_at)}</div></div></div>`;
+  const actsHtml = allActs.length === 0
+    ? '<div class="act-sys">Aucune activité enregistrée</div>'
+    : allActs.slice(-5).map(fmtAct).join('') +
+      (allActs.length > 5
+        ? `<button class="btn btn-ghost btn-sm w100" style="margin-top:6px" id="histBtn" onclick="showFullHistory()">📋 Historique complet · ${allActs.length} entrées</button>`
+        : '');
 
   const canEdit = true;
   const isOwn = t.agent_id === ME.id || ME.role !== 'agent';
@@ -990,7 +1039,7 @@ function renderTicketModal(t) {
           <p style="font-size:12.5px;color:var(--t2);line-height:1.6">${t.notes||'Aucune note.'}</p>
         </div>
         <div class="ib-title" style="margin-bottom:8px">📋 Fil d'activité</div>
-        <div id="actFeed">${acts}</div>
+        <div id="actFeed">${actsHtml}</div>
         ${commentBox}
       </div>
       <div>
@@ -1131,7 +1180,8 @@ async function loadAgents() {
         </div>
         <div class="flex gap4">
           <button class="btn btn-ghost btn-xs" onclick="filterByAgent('${u.id}','${u.prenom} ${u.nom}')">Voir tickets</button>
-          ${ME.role==='directeur'?`<button class="btn btn-red btn-xs" onclick="toggleAgent('${u.id}',${u.actif})">${u.actif?'Désactiver':'Activer'}</button>`:''}
+          ${(ME.role==='directeur'||ME.role==='superviseur')?`<button class="btn btn-acc btn-xs" onclick="openEditAgent('${u.id}','${u.nom}','${u.prenom}','${u.email}','${u.role}')">Modifier</button>`:''}
+          ${ME.role==='directeur'?`<button class="btn btn-red btn-xs" onclick="deleteAgent('${u.id}','${u.prenom} ${u.nom}',${u.actif})">${u.actif?'Désactiver':'Activer'}</button>`:''}
         </div>
       </div>`).join('');
 
@@ -1302,6 +1352,110 @@ function showToast(msg, isErr) {
   wrap.appendChild(el);
   setTimeout(()=>el.classList.add('on'),10);
   setTimeout(()=>{el.classList.remove('on');setTimeout(()=>el.remove(),400);},3500);
+}
+
+// ══════════════════════════════════════════
+// EDIT AGENT
+// ══════════════════════════════════════════
+function openEditAgent(uid, nom, prenom, email, role) {
+  document.getElementById('editAgentId').value = uid;
+  document.getElementById('editAgentSub').textContent = `${prenom} ${nom}`;
+  document.getElementById('eaNom').value = nom;
+  document.getElementById('eaPrenom').value = prenom;
+  document.getElementById('eaEmail').value = email;
+  document.getElementById('eaRole').value = role;
+  document.getElementById('eaPw').value = '';
+  document.getElementById('editAgentModal').classList.add('on');
+}
+function closeEditAgentModal() { document.getElementById('editAgentModal').classList.remove('on'); }
+
+async function saveEditAgent() {
+  const uid = document.getElementById('editAgentId').value;
+  const nom = document.getElementById('eaNom').value.trim();
+  const prenom = document.getElementById('eaPrenom').value.trim();
+  const role = document.getElementById('eaRole').value;
+  const pw = document.getElementById('eaPw').value;
+  if (!nom || !prenom) { showToast('⚠ Nom et Prénom requis', true); return; }
+  const body = { nom, prenom, role };
+  if (pw) body.password = pw;
+  try {
+    await api('PATCH', '/users/' + uid, body);
+    showToast('✓ Compte mis à jour');
+    closeEditAgentModal();
+    loadAgents();
+  } catch(e) { showToast(e.message, true); }
+}
+
+async function deleteAgent(uid, name, actif) {
+  if (!confirm(`Confirmer : ${actif ? 'désactiver' : 'réactiver'} le compte de ${name} ?`)) return;
+  try {
+    await api('PATCH', '/users/' + uid, { actif: actif ? 0 : 1 });
+    showToast(`Compte de ${name} ${actif ? 'désactivé' : 'réactivé'}`);
+    loadAgents();
+  } catch(e) { showToast(e.message, true); }
+}
+
+// ══════════════════════════════════════════
+// MON PROFIL
+// ══════════════════════════════════════════
+async function loadProfile() {
+  const roleMap = {directeur:'👑 Directeur', superviseur:'🔰 Superviseur', agent:'👤 Agent'};
+  try {
+    const u = await api('GET', '/me');
+    if (!u) return;
+    document.getElementById('pEmail').textContent = u.email;
+    document.getElementById('pRole').textContent = roleMap[u.role] || u.role;
+    document.getElementById('pCreated').textContent = fmtDate(u.created_at) || '-';
+    document.getElementById('pLastLogin').textContent = u.last_login ? fmtDate(u.last_login) : 'Jamais';
+    document.getElementById('pNom').value = u.nom;
+    document.getElementById('pPrenom').value = u.prenom;
+  } catch {
+    document.getElementById('pEmail').textContent = ME.email;
+    document.getElementById('pRole').textContent = roleMap[ME.role] || ME.role;
+    document.getElementById('pCreated').textContent = '-';
+    document.getElementById('pLastLogin').textContent = '-';
+    document.getElementById('pNom').value = ME.nom;
+    document.getElementById('pPrenom').value = ME.prenom;
+  }
+}
+
+async function saveProfile() {
+  const nom = document.getElementById('pNom').value.trim();
+  const prenom = document.getElementById('pPrenom').value.trim();
+  if (!nom || !prenom) { showToast('⚠ Nom et Prénom requis', true); return; }
+  try {
+    await api('PATCH', '/me', { nom, prenom });
+    ME.nom = nom; ME.prenom = prenom;
+    localStorage.setItem('syndongo_user', JSON.stringify(ME));
+    setupTopbar();
+    showToast('✓ Profil mis à jour');
+  } catch(e) { showToast(e.message, true); }
+}
+
+async function changePassword() {
+  const pw = document.getElementById('pPwNew').value;
+  const pw2 = document.getElementById('pPwConfirm').value;
+  if (!pw) { showToast('⚠ Saisissez un nouveau mot de passe', true); return; }
+  if (pw.length < 6) { showToast('⚠ Minimum 6 caractères requis', true); return; }
+  if (pw !== pw2) { showToast('⚠ Les mots de passe ne correspondent pas', true); return; }
+  try {
+    await api('PATCH', '/me', { password: pw });
+    document.getElementById('pPwNew').value = '';
+    document.getElementById('pPwConfirm').value = '';
+    showToast('✓ Mot de passe modifié avec succès');
+  } catch(e) { showToast(e.message, true); }
+}
+
+// ══════════════════════════════════════════
+// HISTORIQUE TICKET
+// ══════════════════════════════════════════
+function showFullHistory() {
+  const feed = document.getElementById('actFeed');
+  if (!feed || !window._ticketActFull) return;
+  const fmtA = a => a.user_nom==='Système'
+    ? `<div class="act-sys">🤖 ${a.contenu} · ${fmtTime(a.created_at)}</div>`
+    : `<div class="act-item"><div class="act-av" style="background:var(--acc)">${a.user_nom.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div><div class="act-box"><div class="act-who">${a.user_nom}</div><div class="act-txt">${a.contenu}</div><div class="act-ts">${fmtDate(a.created_at)} ${fmtTime(a.created_at)}</div></div></div>`;
+  feed.innerHTML = window._ticketActFull.map(fmtA).join('');
 }
 
 // ══════════════════════════════════════════
