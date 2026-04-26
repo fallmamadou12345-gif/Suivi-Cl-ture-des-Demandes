@@ -82,7 +82,7 @@ def init_db():
     );
     """)
     # Seed admin + demo accounts
-    now = datetime.datetime.utcnow().isoformat()
+    now = datetime.datetime.now(datetime.UTC).isoformat()
     accounts = [
         (str(uuid.uuid4()), "Ndongo", "Fall", "directeur@syndongo.sn", hash_pw("Admin2025!"), "directeur"),
         (str(uuid.uuid4()), "Sy", "Mamadou", "superviseur@syndongo.sn", hash_pw("Super2025!"), "superviseur"),
@@ -130,7 +130,7 @@ def hash_pw(pw): return hashlib.sha256(pw.encode()).hexdigest()
 
 # ─── AUTH ───
 def make_token(user_id, role):
-    payload = {"sub": user_id, "role": role, "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=12)}
+    payload = {"sub": user_id, "role": role, "exp": datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=12)}
     return jwt.encode(payload, SECRET, algorithm="HS256")
 
 def get_current_user(creds: HTTPAuthorizationCredentials = Depends(security)):
@@ -207,7 +207,7 @@ def login(req: LoginRequest):
         conn.close()
         raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
     conn.execute("UPDATE users SET last_login=? WHERE id=?",
-                (datetime.datetime.utcnow().isoformat(), user["id"]))
+                (datetime.datetime.now(datetime.UTC).isoformat(), user["id"]))
     conn.commit()
     conn.close()
     token = make_token(user["id"], user["role"])
@@ -276,7 +276,7 @@ def create_ticket(req: TicketCreate, user=Depends(get_current_user)):
     conn = get_db()
     num = (conn.execute("SELECT MAX(numero) as m FROM tickets").fetchone()['m'] or 2800) + 1
     tid = str(uuid.uuid4())
-    now = datetime.datetime.utcnow().isoformat()
+    now = datetime.datetime.now(datetime.UTC).isoformat()
     conn.execute("""INSERT INTO tickets 
         (id,numero,driver_yango,driver_nom,driver_tel,driver_plaque,categorie,sous_categorie,alerte,priorite,statut,notes,agent_id,created_at,updated_at)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
@@ -304,7 +304,7 @@ def update_ticket(ticket_id: str, req: TicketUpdate, user=Depends(get_current_us
     t = conn.execute("SELECT * FROM tickets WHERE id=?", (ticket_id,)).fetchone()
     if not t: raise HTTPException(404)
     if user["role"] == "agent" and dict(t)["agent_id"] != user["id"]: raise HTTPException(403)
-    now = datetime.datetime.utcnow().isoformat()
+    now = datetime.datetime.now(datetime.UTC).isoformat()
     updates, params = [], []
     changes = []
     if req.statut:
@@ -331,7 +331,7 @@ def add_activity(ticket_id: str, req: ActivityCreate, user=Depends(get_current_u
     t = conn.execute("SELECT * FROM tickets WHERE id=?", (ticket_id,)).fetchone()
     if not t: raise HTTPException(404)
     if user["role"] == "agent" and dict(t)["agent_id"] != user["id"]: raise HTTPException(403)
-    now = datetime.datetime.utcnow().isoformat()
+    now = datetime.datetime.now(datetime.UTC).isoformat()
     conn.execute("INSERT INTO ticket_activity (id,ticket_id,user_id,user_nom,type,contenu,created_at) VALUES (?,?,?,?,?,?,?)",
         (str(uuid.uuid4()), ticket_id, user["id"], f"{user['prenom']} {user['nom']}", req.type, req.contenu, now))
     conn.execute("UPDATE tickets SET updated_at=? WHERE id=?", (now, ticket_id))
@@ -360,7 +360,7 @@ def list_users(user=Depends(require_role("superviseur","directeur"))):
 def create_user(req: UserCreate, user=Depends(require_role("superviseur","directeur"))):
     conn = get_db()
     uid = str(uuid.uuid4())
-    now = datetime.datetime.utcnow().isoformat()
+    now = datetime.datetime.now(datetime.UTC).isoformat()
     try:
         conn.execute("INSERT INTO users (id,nom,prenom,email,password,role,actif,created_at) VALUES (?,?,?,?,?,?,1,?)",
                     (uid, req.nom, req.prenom, req.email, hash_pw(req.password), req.role, now))
