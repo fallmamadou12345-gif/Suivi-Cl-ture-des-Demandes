@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import Optional, List
-import sqlite3, hashlib, jwt, datetime, os, uuid
+import sqlite3, hashlib, jwt, datetime, os, uuid, shutil, threading
 
 app = FastAPI(title="SynDongo API v1.0")
 
@@ -451,8 +451,25 @@ def analytics(user=Depends(require_role("superviseur","directeur"))):
     conn.close()
     return {"motifs": motifs, "par_agent": par_agent, "par_alerte": par_alerte}
 
+def auto_backup():
+    try:
+        backup_path = DB.replace('.db', f'_backup_{datetime.date.today()}.db')
+        shutil.copy2(DB, backup_path)
+        print(f"✅ Backup créé : {backup_path}")
+    except Exception as e:
+        print(f"⚠️ Backup échoué : {e}")
+    threading.Timer(86400, auto_backup).start()
+
+@app.get("/admin/backup")
+def download_backup(user=Depends(require_role("directeur"))):
+    backup_path = DB.replace('.db', f'_backup_{datetime.date.today()}.db')
+    shutil.copy2(DB, backup_path)
+    from fastapi.responses import FileResponse
+    return FileResponse(backup_path, filename=f"syndongo_backup_{datetime.date.today()}.db")
+
 if __name__ == "__main__":
     init_db()
+    threading.Timer(86400, auto_backup).start()
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
