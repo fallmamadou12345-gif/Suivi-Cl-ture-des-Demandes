@@ -389,6 +389,18 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
 .ni-ts{font-family:var(--mono);font-size:9px;color:var(--t3);margin-top:2px;}
 .ni-unread{background:rgba(79,142,255,.08);}
 
+/* ══ MODAL THEME FIX ══ */
+.modal .form-input,.modal .form-select{background:var(--s2)!important;color:var(--t1)!important;border-color:var(--b2)!important;}
+.modal .form-input:focus,.modal .form-select:focus{border-color:var(--acc)!important;color:var(--t1)!important;}
+.modal .form-input::placeholder{color:var(--t3)!important;}
+.modal .form-input:disabled{opacity:.45;background:var(--s3)!important;}
+.modal{background:var(--s1)!important;color:var(--t1)!important;}
+.modal-title{color:var(--t1)!important;}
+.modal-sub{color:var(--t2)!important;}
+.form-label{color:var(--t3)!important;}
+.ib-k{color:var(--t2)!important;}
+.ib-v{color:var(--t1)!important;}
+
 /* ══ TOAST ══ */
 .toast-wrap{position:fixed;bottom:20px;right:20px;z-index:1000;display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
 .toast{background:var(--s2);border:1px solid var(--b2);border-left:3px solid var(--grn);border-radius:8px;padding:10px 16px;font-size:12px;opacity:0;transform:translateX(20px);transition:.3s;pointer-events:none;max-width:340px;}
@@ -716,7 +728,10 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
         </div>
       </div>
       <div class="flex gap8 jc-sb" style="margin-top:8px">
-        <button class="btn btn-ghost" onclick="closeEditAgentModal()">Annuler</button>
+        <div class="flex gap8">
+          <button class="btn btn-ghost" onclick="closeEditAgentModal()">Annuler</button>
+          <button class="btn btn-red btn-sm" id="deleteAgentBtn" onclick="" style="display:none">🗑 Supprimer</button>
+        </div>
         <button class="btn btn-acc" onclick="saveEditAgent()">Enregistrer →</button>
       </div>
     </div>
@@ -1444,7 +1459,27 @@ function openEditAgent(uid, nom, prenom, email, role) {
   document.getElementById('eaEmail').value = email;
   document.getElementById('eaRole').value = role;
   document.getElementById('eaPw').value = '';
+  const deleteBtn = document.getElementById('deleteAgentBtn');
+  if (ME.role === 'directeur') {
+    deleteBtn.style.display = 'inline-flex';
+    deleteBtn.onclick = () => deleteAgentPermanent(uid, prenom + ' ' + nom);
+  } else {
+    deleteBtn.style.display = 'none';
+  }
   document.getElementById('editAgentModal').classList.add('on');
+}
+
+async function deleteAgentPermanent(uid, name) {
+  const c1 = confirm(`⚠️ ATTENTION : Supprimer définitivement le compte de ${name} ?\n\nCette action est IRRÉVERSIBLE.`);
+  if (!c1) return;
+  const c2 = confirm(`Dernière confirmation : supprimer ${name} ?`);
+  if (!c2) return;
+  try {
+    await api('DELETE', '/users/' + uid);
+    showToast(`🗑 Compte de ${name} supprimé définitivement`);
+    closeEditAgentModal();
+    loadAgents();
+  } catch(e) { showToast(e.message, true); }
 }
 function closeEditAgentModal() { document.getElementById('editAgentModal').classList.remove('on'); }
 

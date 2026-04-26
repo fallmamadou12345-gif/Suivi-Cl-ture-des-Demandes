@@ -402,7 +402,7 @@ def update_user(user_id: str, req: UserUpdate, user=Depends(require_role("superv
 @app.delete("/users/{user_id}")
 def delete_user(user_id: str, user=Depends(require_role("directeur"))):
     conn = get_db()
-    conn.execute("UPDATE users SET actif=0 WHERE id=?", (user_id,))
+    conn.execute("DELETE FROM users WHERE id=?", (user_id,))
     conn.commit(); conn.close()
     return {"message": "Compte désactivé"}
 
