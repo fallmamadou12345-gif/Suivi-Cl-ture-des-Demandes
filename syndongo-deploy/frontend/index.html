@@ -42,28 +42,75 @@ input,select,textarea,button{font-family:var(--body);}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ══ LOGIN ══ */
+@keyframes loginFadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes logoGlow{0%,100%{box-shadow:0 0 20px rgba(79,142,255,.5),0 0 40px rgba(79,142,255,.15)}50%{box-shadow:0 0 32px rgba(79,142,255,.8),0 0 64px rgba(79,142,255,.3)}}
+
 #loginPage{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(79,142,255,.12),transparent);
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#060810 0%,#0d1220 35%,#0a1830 65%,#070a14 100%);
+  background-size:400% 400%;
+  animation:bgShift 14s ease infinite;
 }
+#loginPage::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 40% at 25% 25%,rgba(79,142,255,.09),transparent),
+    radial-gradient(ellipse 50% 35% at 75% 75%,rgba(37,88,212,.07),transparent),
+    radial-gradient(ellipse 40% 50% at 50% 100%,rgba(79,142,255,.05),transparent);
+}
+#loginPage::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(79,142,255,.055) 1px,transparent 1px);
+  background-size:40px 40px;
+  mask-image:radial-gradient(ellipse 85% 85% at 50% 50%,black,transparent);
+  -webkit-mask-image:radial-gradient(ellipse 85% 85% at 50% 50%,black,transparent);
+}
+
 .login-box{
-  width:420px;background:var(--s1);border:1px solid var(--b2);
-  border-radius:20px;padding:40px;
+  position:relative;z-index:1;width:450px;
+  background:rgba(13,18,32,.82);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border:1px solid rgba(79,142,255,.18);
+  border-radius:24px;padding:48px 42px 36px;
+  animation:loginFadeUp .6s cubic-bezier(.22,.68,0,1.15) both;
+  box-shadow:0 32px 72px rgba(0,0,0,.7),0 0 0 1px rgba(79,142,255,.06),inset 0 1px 0 rgba(255,255,255,.04);
 }
-.login-logo{text-align:center;margin-bottom:32px;}
-.login-logo-sq{width:56px;height:56px;background:var(--acc);border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-size:24px;font-weight:800;color:#fff;margin:0 auto 12px;}
-.login-title{font-family:var(--disp);font-size:22px;font-weight:800;}
-.login-sub{font-size:12px;color:var(--t3);font-family:var(--mono);letter-spacing:.5px;}
+
+.login-logo{text-align:center;margin-bottom:36px;}
+.login-logo-sq{
+  width:72px;height:72px;
+  background:linear-gradient(135deg,#1e4cc4,#4f8eff);
+  border-radius:20px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--disp);font-size:32px;font-weight:800;color:#fff;
+  margin:0 auto 16px;
+  animation:logoGlow 3s ease-in-out infinite;
+}
+.login-title{font-family:var(--disp);font-size:26px;font-weight:800;margin-bottom:8px;}
+.login-tagline{font-size:11.5px;color:var(--t2);line-height:1.55;margin-bottom:5px;max-width:290px;margin-left:auto;margin-right:auto;}
+.login-sub{font-size:9.5px;color:var(--t3);font-family:var(--mono);letter-spacing:.6px;}
+
 .form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
 .form-label{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.7px;}
+
+.input-icon-wrap{position:relative;}
+.input-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.45;pointer-events:none;line-height:1;}
+
 .form-input,.form-select,.form-textarea{
-  background:var(--bg);border:1px solid var(--b2);border-radius:8px;
-  padding:10px 14px;font-size:13px;color:var(--t1);outline:none;transition:.15s;width:100%;
+  background:rgba(11,13,18,.7);border:1px solid var(--b2);border-radius:10px;
+  padding:11px 14px;font-size:13px;color:var(--t1);outline:none;
+  transition:border-color .2s,box-shadow .2s;width:100%;
 }
-.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--acc);}
+.input-icon-wrap .form-input{padding-left:38px;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{
+  border-color:var(--acc);box-shadow:0 0 0 3px rgba(79,142,255,.15);
+}
 .form-input::placeholder{color:var(--t3);}
 .form-textarea{resize:vertical;min-height:72px;}
 option{background:var(--s1);}
+
 .btn{padding:9px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
 .btn:disabled{opacity:.5;pointer-events:none;}
 .btn-acc{background:var(--acc);color:#fff;}
@@ -81,10 +128,43 @@ option{background:var(--s1);}
 .btn-sm{padding:5px 12px;font-size:11px;}
 .btn-xs{padding:3px 9px;font-size:10px;}
 .btn-full{width:100%;}
-.login-demos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:16px;}
-.demo-btn{padding:7px 4px;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid var(--b2);background:var(--s2);color:var(--t2);text-align:center;transition:.15s;font-family:var(--mono);}
-.demo-btn:hover{color:var(--t1);border-color:var(--b3);}
+
+.btn-login-main{
+  padding:14px 20px;font-size:14px;font-weight:700;border-radius:10px;
+  background:linear-gradient(135deg,#2558d4,#4f8eff);
+  box-shadow:0 4px 18px rgba(79,142,255,.38);
+  transition:transform .2s,box-shadow .2s,background .2s;
+  margin-top:2px;
+}
+.btn-login-main:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 28px rgba(79,142,255,.55);
+  background:linear-gradient(135deg,#1e4cc4,#3e74ff);
+}
+.btn-login-main:active{transform:translateY(0);}
+
+.demo-access-label{
+  text-align:center;font-size:9px;font-family:var(--mono);color:var(--t3);
+  text-transform:uppercase;letter-spacing:1.5px;margin-top:22px;margin-bottom:7px;
+  display:flex;align-items:center;gap:8px;
+}
+.demo-access-label::before,.demo-access-label::after{content:'';flex:1;height:1px;background:var(--b1);}
+
+.login-demos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
+.demo-btn{
+  padding:5px 3px;border-radius:6px;font-size:9px;font-weight:600;
+  cursor:pointer;border:1px solid rgba(74,85,128,.2);
+  background:rgba(11,13,18,.5);color:var(--t3);
+  text-align:center;transition:.15s;font-family:var(--mono);
+}
+.demo-btn:hover{color:var(--t2);border-color:var(--b2);background:rgba(30,36,56,.6);}
+
 .login-err{background:rgba(255,61,90,.1);border:1px solid rgba(255,61,90,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin-bottom:14px;}
+
+.login-footer{
+  text-align:center;font-size:9px;font-family:var(--mono);
+  color:var(--t3);margin-top:22px;letter-spacing:.4px;opacity:.6;
+}
 
 /* ══ APP SHELL ══ */
 #app{display:grid;grid-template-columns:230px 1fr;grid-template-rows:56px 1fr;height:100vh;}
@@ -309,11 +389,6 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
 .sh-title{font-family:var(--disp);font-size:13.5px;font-weight:800;}
 .sh-action{font-size:11px;color:var(--acc);cursor:pointer;background:none;border:none;font-family:var(--mono);}
 
-/* DEMO CREDS BOX */
-.creds-box{background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:12px 14px;margin-top:16px;font-size:11px;font-family:var(--mono);color:var(--t2);}
-.creds-box strong{color:var(--t1);display:block;margin-bottom:6px;font-size:12px;}
-.cred-line{display:flex;justify-content:space-between;padding:2px 0;}
-.cred-role{color:var(--acc);}
 </style>
 </head>
 <body>
@@ -322,31 +397,34 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
 <div id="loginPage">
   <div class="login-box">
     <div class="login-logo">
-      <div class="login-logo-sq">T</div>
+      <div class="login-logo-sq">S</div>
       <div class="login-title">SynDongo</div>
+      <div class="login-tagline">Plateforme de gestion et suivi des demandes chauffeurs VTC</div>
       <div class="login-sub">Suivi &amp; Clôture des Demandes</div>
     </div>
     <div id="loginErr" class="login-err hidden"></div>
     <div class="form-group">
       <label class="form-label">Email</label>
-      <input class="form-input" id="loginEmail" type="email" placeholder="votre@email.sn">
+      <div class="input-icon-wrap">
+        <span class="input-icon">✉</span>
+        <input class="form-input" id="loginEmail" type="email" placeholder="votre@email.sn">
+      </div>
     </div>
     <div class="form-group">
       <label class="form-label">Mot de passe</label>
-      <input class="form-input" id="loginPw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="input-icon-wrap">
+        <span class="input-icon">🔒</span>
+        <input class="form-input" id="loginPw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
     </div>
-    <button class="btn btn-acc btn-full" id="loginBtn" onclick="doLogin()">Se connecter →</button>
-    <div class="creds-box">
-      <strong>🔑 Comptes de démonstration</strong>
-      <div class="cred-line"><span class="cred-role">Directeur</span><span>directeur@syndongo.sn / Admin2025!</span></div>
-      <div class="cred-line"><span class="cred-role">Superviseur</span><span>superviseur@syndongo.sn / Super2025!</span></div>
-      <div class="cred-line"><span class="cred-role">Agent</span><span>amadou@syndongo.sn / Agent2025!</span></div>
-    </div>
+    <button class="btn btn-login-main btn-full" id="loginBtn" onclick="doLogin()">Se connecter →</button>
+    <div class="demo-access-label">Accès démo</div>
     <div class="login-demos">
       <div class="demo-btn" onclick="quickLogin('directeur@syndongo.sn','Admin2025!')">👑 Directeur</div>
       <div class="demo-btn" onclick="quickLogin('superviseur@syndongo.sn','Super2025!')">🔰 Superviseur</div>
       <div class="demo-btn" onclick="quickLogin('amadou@syndongo.sn','Agent2025!')">👤 Agent</div>
     </div>
+    <div class="login-footer">© 2025 SynDongo · Tous droits réservés</div>
   </div>
 </div>
 
