@@ -654,6 +654,21 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
         <button class="btn btn-acc btn-sm" onclick="openCreateAgent()">+ Créer un compte</button>
       </div>
       <div class="kpi-row kpi-row-4" id="agentsKPIs"></div>
+      <div class="filter-bar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+        <input class="form-input" id="agtSearch" placeholder="🔍 Rechercher un agent…" style="flex:1;min-width:160px" oninput="filterAgentsList()">
+        <select class="form-select" id="agtRole" onchange="filterAgentsList()" style="min-width:140px">
+          <option value="">Tous les rôles</option>
+          <option value="agent">👤 Agent</option>
+          <option value="superviseur">🔰 Superviseur</option>
+          <option value="directeur">👑 Directeur</option>
+        </select>
+        <select class="form-select" id="agtStatus" onchange="filterAgentsList()" style="min-width:130px">
+          <option value="">Tous statuts</option>
+          <option value="1">✅ Actifs</option>
+          <option value="0">⛔ Inactifs</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="resetAgentFilters()">↺ Réinitialiser</button>
+      </div>
       <div class="card">
         <div id="agentsList"></div>
       </div>
@@ -772,7 +787,11 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
           </select>
         </div>
       </div>
-      <div class="flex gap8 jc-sb" style="margin-top:8px">
+      <div id="agentHistorySection" style="margin-top:14px;display:none">
+        <div style="font-size:.75rem;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">📋 Historique des modifications</div>
+        <div id="agentHistoryList" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
+      </div>
+      <div class="flex gap8 jc-sb" style="margin-top:12px">
         <div class="flex gap8">
           <button class="btn btn-ghost" onclick="closeEditAgentModal()">Annuler</button>
           <button class="btn btn-red btn-sm" id="deleteAgentBtn" onclick="" style="display:none">🗑 Supprimer</button>
@@ -1284,6 +1303,53 @@ async function createTicket() {
 // ══════════════════════════════════════════
 // AGENTS VIEW
 // ══════════════════════════════════════════
+let _allAgents = [];
+
+function renderAgentsList(users) {
+  const roleMap={directeur:'👑 Directeur',superviseur:'🔰 Superviseur',agent:'👤 Agent'};
+  const bgMap={directeur:'role-dir-bg',superviseur:'role-sup-bg',agent:'role-agt-bg'};
+  if (!users.length) {
+    document.getElementById('agentsList').innerHTML = '<div style="padding:20px;color:var(--t3);text-align:center">Aucun agent trouvé</div>';
+    return;
+  }
+  document.getElementById('agentsList').innerHTML = users.map(u => `
+    <div class="agent-row">
+      <div class="agt-ava ${bgMap[u.role]||'role-agt-bg'}">${(u.prenom[0]+u.nom[0]).toUpperCase()}</div>
+      <div class="agt-info f1">
+        <div class="agt-name">${u.prenom} ${u.nom} ${u.actif?'<span class="online-dot"></span>':'<span class="offline-dot"></span>'}${!u.actif?'<span class="badge" style="background:var(--red);color:#fff;font-size:.6rem;padding:1px 5px;margin-left:4px">INACTIF</span>':''}</div>
+        <div class="agt-email">${u.email} · ${roleMap[u.role]||u.role}</div>
+      </div>
+      <div class="agt-stats">
+        <div class="agt-stat"><div class="agt-stat-val" style="color:var(--acc)">${u.tickets_ouverts}</div><div class="agt-stat-lbl">Ouverts</div></div>
+        <div class="agt-stat"><div class="agt-stat-val" style="color:var(--grn)">${u.tickets_resolus}</div><div class="agt-stat-lbl">Résolus</div></div>
+        <div class="agt-stat"><div class="agt-stat-val">${u.tickets_total}</div><div class="agt-stat-lbl">Total</div></div>
+      </div>
+      <div class="flex gap4">
+        <button class="btn btn-ghost btn-xs" onclick="filterByAgent('${u.id}','${u.prenom} ${u.nom}')">Voir tickets</button>
+        ${(ME.role==='directeur'||ME.role==='superviseur')?`<button class="btn btn-acc btn-xs" onclick="openEditAgent('${u.id}','${u.nom}','${u.prenom}','${u.email}','${u.role}')">Modifier</button>`:''}
+        ${ME.role==='directeur'?`<button class="btn btn-red btn-xs" onclick="deleteAgent('${u.id}','${u.prenom} ${u.nom}',${u.actif})">${u.actif?'Désactiver':'Activer'}</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function filterAgentsList() {
+  const q = (document.getElementById('agtSearch')?.value||'').toLowerCase();
+  const role = document.getElementById('agtRole')?.value||'';
+  const status = document.getElementById('agtStatus')?.value;
+  let filtered = _allAgents;
+  if (q) filtered = filtered.filter(u => `${u.prenom} ${u.nom} ${u.email}`.toLowerCase().includes(q));
+  if (role) filtered = filtered.filter(u => u.role === role);
+  if (status !== '' && status !== undefined && status !== null) filtered = filtered.filter(u => String(u.actif) === status);
+  renderAgentsList(filtered);
+}
+
+function resetAgentFilters() {
+  const s = document.getElementById('agtSearch'); if (s) s.value = '';
+  const r = document.getElementById('agtRole'); if (r) r.value = '';
+  const t = document.getElementById('agtStatus'); if (t) t.value = '';
+  renderAgentsList(_allAgents);
+}
+
 async function loadAgents() {
   document.getElementById('agentsList').innerHTML = '<div class="loading"><div class="loader"></div>Chargement...</div>';
   try {
@@ -1291,36 +1357,16 @@ async function loadAgents() {
     if (!users) return;
     const stats = await api('GET','/tickets/stats');
 
-    // KPIs
+    _allAgents = users;
+
     document.getElementById('agentsKPIs').innerHTML = `
       ${kpi('Total agents',users.filter(u=>u.role==='agent').length,'var(--acc)')}
       ${kpi('Tickets ouverts',stats?.total||0,'var(--ylw)')}
       ${kpi('Tickets résolus',stats?.resolu||0,'var(--grn)')}
       ${kpi('Urgences actives',stats?.urgences||0,'var(--red)')}`;
 
-    const roleMap={directeur:'👑 Directeur',superviseur:'🔰 Superviseur',agent:'👤 Agent'};
-    const bgMap={directeur:'role-dir-bg',superviseur:'role-sup-bg',agent:'role-agt-bg'};
+    renderAgentsList(users);
 
-    document.getElementById('agentsList').innerHTML = users.map(u => `
-      <div class="agent-row">
-        <div class="agt-ava ${bgMap[u.role]||'role-agt-bg'}">${(u.prenom[0]+u.nom[0]).toUpperCase()}</div>
-        <div class="agt-info f1">
-          <div class="agt-name">${u.prenom} ${u.nom} ${u.actif?'<span class="online-dot"></span>':'<span class="offline-dot"></span>'}</div>
-          <div class="agt-email">${u.email} · ${roleMap[u.role]||u.role}</div>
-        </div>
-        <div class="agt-stats">
-          <div class="agt-stat"><div class="agt-stat-val" style="color:var(--acc)">${u.tickets_ouverts}</div><div class="agt-stat-lbl">Ouverts</div></div>
-          <div class="agt-stat"><div class="agt-stat-val" style="color:var(--grn)">${u.tickets_resolus}</div><div class="agt-stat-lbl">Résolus</div></div>
-          <div class="agt-stat"><div class="agt-stat-val">${u.tickets_total}</div><div class="agt-stat-lbl">Total</div></div>
-        </div>
-        <div class="flex gap4">
-          <button class="btn btn-ghost btn-xs" onclick="filterByAgent('${u.id}','${u.prenom} ${u.nom}')">Voir tickets</button>
-          ${(ME.role==='directeur'||ME.role==='superviseur')?`<button class="btn btn-acc btn-xs" onclick="openEditAgent('${u.id}','${u.nom}','${u.prenom}','${u.email}','${u.role}')">Modifier</button>`:''}
-          ${ME.role==='directeur'?`<button class="btn btn-red btn-xs" onclick="deleteAgent('${u.id}','${u.prenom} ${u.nom}',${u.actif})">${u.actif?'Désactiver':'Activer'}</button>`:''}
-        </div>
-      </div>`).join('');
-
-    // Load agents into filter
     const sel = document.getElementById('tktAgent');
     if (sel) {
       sel.innerHTML = '<option value="">Tous agents</option>' +
@@ -1497,7 +1543,7 @@ function showToast(msg, isErr) {
 // ══════════════════════════════════════════
 // EDIT AGENT
 // ══════════════════════════════════════════
-function openEditAgent(uid, nom, prenom, email, role) {
+async function openEditAgent(uid, nom, prenom, email, role) {
   document.getElementById('editAgentId').value = uid;
   document.getElementById('editAgentSub').textContent = `${prenom} ${nom}`;
   document.getElementById('eaNom').value = nom;
@@ -1512,7 +1558,29 @@ function openEditAgent(uid, nom, prenom, email, role) {
   } else {
     deleteBtn.style.display = 'none';
   }
+  // Load history
+  const histSection = document.getElementById('agentHistorySection');
+  const histList = document.getElementById('agentHistoryList');
+  histSection.style.display = 'none';
+  histList.innerHTML = '';
   document.getElementById('editAgentModal').classList.add('on');
+  try {
+    const history = await api('GET', '/users/' + uid + '/history');
+    if (history && history.length) {
+      const champLabel = {nom:'Nom',prenom:'Prénom',role:'Rôle',actif:'Statut',password:'Mot de passe'};
+      histList.innerHTML = history.map(h => {
+        const val = h.champ === 'actif'
+          ? `${h.ancienne_valeur==='1'?'Actif':'Inactif'} → ${h.nouvelle_valeur==='1'?'Actif':'Inactif'}`
+          : h.champ === 'password' ? '• Mot de passe modifié'
+          : `${h.ancienne_valeur} → ${h.nouvelle_valeur}`;
+        return `<div style="font-size:.73rem;padding:5px 8px;background:var(--b2);border-radius:6px;display:flex;justify-content:space-between;gap:8px">
+          <span><b>${champLabel[h.champ]||h.champ}</b> : ${val} <span style="color:var(--t3)">par ${h.modifie_par_nom}</span></span>
+          <span style="color:var(--t3);white-space:nowrap">${fmtDate(h.created_at)}</span>
+        </div>`;
+      }).join('');
+      histSection.style.display = 'block';
+    }
+  } catch(_) {}
 }
 
 async function deleteAgentPermanent(uid, name) {

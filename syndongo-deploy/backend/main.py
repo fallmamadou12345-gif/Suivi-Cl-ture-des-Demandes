@@ -80,6 +80,17 @@ def init_db():
         lu INTEGER DEFAULT 0,
         created_at TEXT
     );
+    CREATE TABLE IF NOT EXISTS agent_history (
+        id TEXT PRIMARY KEY,
+        agent_id TEXT NOT NULL,
+        modifie_par TEXT NOT NULL,
+        modifie_par_nom TEXT,
+        champ TEXT NOT NULL,
+        ancienne_valeur TEXT,
+        nouvelle_valeur TEXT,
+        created_at TEXT,
+        FOREIGN KEY(agent_id) REFERENCES users(id)
+    );
     """)
     # Seed admin + demo accounts
     now = datetime.datetime.now(datetime.UTC).isoformat()
@@ -387,15 +398,31 @@ def update_me(req: UserUpdate, user=Depends(get_current_user)):
 @app.patch("/users/{user_id}")
 def update_user(user_id: str, req: UserUpdate, user=Depends(require_role("superviseur","directeur"))):
     conn = get_db()
+    # Snapshot before update
+    old = conn.execute("SELECT nom,prenom,role,actif FROM users WHERE id=?", (user_id,)).fetchone()
+    if not old:
+        conn.close(); raise HTTPException(404, "Utilisateur introuvable")
     updates, params = [], []
     if req.nom: updates.append("nom=?"); params.append(req.nom)
     if req.prenom: updates.append("prenom=?"); params.append(req.prenom)
     if req.role: updates.append("role=?"); params.append(req.role)
     if req.actif is not None: updates.append("actif=?"); params.append(req.actif)
     if req.password: updates.append("password=?"); params.append(hash_pw(req.password))
-    if not updates: raise HTTPException(400, "Aucun champ à modifier")
+    if not updates: conn.close(); raise HTTPException(400, "Aucun champ à modifier")
     params.append(user_id)
     conn.execute(f"UPDATE users SET {','.join(updates)} WHERE id=?", params)
+    # Log each changed field
+    now = datetime.datetime.now(datetime.UTC).isoformat()
+    modifier_nom = f"{user['prenom']} {user['nom']}"
+    field_map = {"nom": (old["nom"], req.nom), "prenom": (old["prenom"], req.prenom),
+                 "role": (old["role"], req.role), "actif": (str(old["actif"]), str(req.actif) if req.actif is not None else None)}
+    if req.password:
+        conn.execute("INSERT INTO agent_history VALUES(?,?,?,?,?,?,?,?)",
+                     (str(uuid.uuid4()), user_id, user["id"], modifier_nom, "password", "***", "***", now))
+    for champ, (old_val, new_val) in field_map.items():
+        if new_val is not None and str(new_val) != str(old_val):
+            conn.execute("INSERT INTO agent_history VALUES(?,?,?,?,?,?,?,?)",
+                         (str(uuid.uuid4()), user_id, user["id"], modifier_nom, champ, old_val, new_val, now))
     conn.commit(); conn.close()
     return {"message": "Utilisateur mis à jour"}
 
@@ -405,6 +432,17 @@ def delete_user(user_id: str, user=Depends(require_role("directeur"))):
     conn.execute("DELETE FROM users WHERE id=?", (user_id,))
     conn.commit(); conn.close()
     return {"message": "Compte désactivé"}
+
+@app.get("/users/{user_id}/history")
+def get_user_history(user_id: str, user=Depends(require_role("superviseur","directeur"))):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT champ, ancienne_valeur, nouvelle_valeur, modifie_par_nom, created_at "
+        "FROM agent_history WHERE agent_id=? ORDER BY created_at DESC LIMIT 50",
+        (user_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 # ── NOTIFICATIONS ──
 
