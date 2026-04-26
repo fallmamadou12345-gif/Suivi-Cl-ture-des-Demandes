@@ -654,20 +654,20 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
         <button class="btn btn-acc btn-sm" onclick="openCreateAgent()">+ Créer un compte</button>
       </div>
       <div class="kpi-row kpi-row-4" id="agentsKPIs"></div>
-      <div class="filter-bar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
-        <input class="form-input" id="agtSearch" placeholder="🔍 Rechercher un agent…" style="flex:1;min-width:160px" oninput="filterAgentsList()">
-        <select class="form-select" id="agtRole" onchange="filterAgentsList()" style="min-width:140px">
+      <div class="filter-bar" style="margin-bottom:0">
+        <input type="text" id="agentSearch" placeholder="🔍 Rechercher nom, email, rôle..." oninput="filterAgentsList()" style="flex:1;background:var(--bg);border:1px solid var(--b2);border-radius:7px;padding:7px 12px;font-size:12px;color:var(--t1);outline:none;font-family:var(--mono);">
+        <select id="agentFilterRole" onchange="filterAgentsList()" class="form-select-sm">
           <option value="">Tous les rôles</option>
           <option value="agent">👤 Agent</option>
           <option value="superviseur">🔰 Superviseur</option>
           <option value="directeur">👑 Directeur</option>
         </select>
-        <select class="form-select" id="agtStatus" onchange="filterAgentsList()" style="min-width:130px">
+        <select id="agentFilterStatut" onchange="filterAgentsList()" class="form-select-sm">
           <option value="">Tous statuts</option>
-          <option value="1">✅ Actifs</option>
-          <option value="0">⛔ Inactifs</option>
+          <option value="1">🟢 Actifs seulement</option>
+          <option value="0">🔴 Inactifs seulement</option>
         </select>
-        <button class="btn btn-ghost btn-sm" onclick="resetAgentFilters()">↺ Réinitialiser</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetAgentFilters()">↺ Reset</button>
       </div>
       <div class="card">
         <div id="agentsList"></div>
@@ -787,9 +787,9 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
           </select>
         </div>
       </div>
-      <div id="agentHistorySection" style="margin-top:14px;display:none">
-        <div style="font-size:.75rem;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">📋 Historique des modifications</div>
-        <div id="agentHistoryList" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:4px"></div>
+      <div style="margin-top:14px;border-top:1px solid var(--b1);padding-top:12px">
+        <div class="ib-title" style="margin-bottom:8px">📋 Historique des modifications</div>
+        <div id="agentHistory" style="font-size:11px;font-family:var(--mono);color:var(--t2);max-height:160px;overflow-y:auto;line-height:1.6"></div>
       </div>
       <div class="flex gap8 jc-sb" style="margin-top:12px">
         <div class="flex gap8">
@@ -1308,45 +1308,48 @@ let _allAgents = [];
 function renderAgentsList(users) {
   const roleMap={directeur:'👑 Directeur',superviseur:'🔰 Superviseur',agent:'👤 Agent'};
   const bgMap={directeur:'role-dir-bg',superviseur:'role-sup-bg',agent:'role-agt-bg'};
-  if (!users.length) {
-    document.getElementById('agentsList').innerHTML = '<div style="padding:20px;color:var(--t3);text-align:center">Aucun agent trouvé</div>';
-    return;
-  }
-  document.getElementById('agentsList').innerHTML = users.map(u => `
-    <div class="agent-row">
-      <div class="agt-ava ${bgMap[u.role]||'role-agt-bg'}">${(u.prenom[0]+u.nom[0]).toUpperCase()}</div>
-      <div class="agt-info f1">
-        <div class="agt-name">${u.prenom} ${u.nom} ${u.actif?'<span class="online-dot"></span>':'<span class="offline-dot"></span>'}${!u.actif?'<span class="badge" style="background:var(--red);color:#fff;font-size:.6rem;padding:1px 5px;margin-left:4px">INACTIF</span>':''}</div>
-        <div class="agt-email">${u.email} · ${roleMap[u.role]||u.role}</div>
-      </div>
-      <div class="agt-stats">
-        <div class="agt-stat"><div class="agt-stat-val" style="color:var(--acc)">${u.tickets_ouverts}</div><div class="agt-stat-lbl">Ouverts</div></div>
-        <div class="agt-stat"><div class="agt-stat-val" style="color:var(--grn)">${u.tickets_resolus}</div><div class="agt-stat-lbl">Résolus</div></div>
-        <div class="agt-stat"><div class="agt-stat-val">${u.tickets_total}</div><div class="agt-stat-lbl">Total</div></div>
-      </div>
-      <div class="flex gap4">
-        <button class="btn btn-ghost btn-xs" onclick="filterByAgent('${u.id}','${u.prenom} ${u.nom}')">Voir tickets</button>
-        ${(ME.role==='directeur'||ME.role==='superviseur')?`<button class="btn btn-acc btn-xs" onclick="openEditAgent('${u.id}','${u.nom}','${u.prenom}','${u.email}','${u.role}')">Modifier</button>`:''}
-        ${ME.role==='directeur'?`<button class="btn btn-red btn-xs" onclick="deleteAgent('${u.id}','${u.prenom} ${u.nom}',${u.actif})">${u.actif?'Désactiver':'Activer'}</button>`:''}
-      </div>
-    </div>`).join('');
+  document.getElementById('agentsList').innerHTML = users.length === 0
+    ? '<div style="padding:30px;text-align:center;color:var(--t3);font-family:var(--mono)">Aucun compte trouvé</div>'
+    : users.map(u => `
+      <div class="agent-row" style="${!u.actif?'opacity:.6':''}">
+        <div class="agt-ava ${bgMap[u.role]||'role-agt-bg'}">${(u.prenom[0]+u.nom[0]).toUpperCase()}</div>
+        <div class="agt-info f1">
+          <div class="agt-name">
+            ${u.prenom} ${u.nom}
+            ${u.actif?'<span class="online-dot"></span>':'<span class="offline-dot"></span>'}
+            ${!u.actif?'<span class="badge" style="background:rgba(255,61,90,.15);color:var(--red);border-color:rgba(255,61,90,.25);font-size:9px;margin-left:4px">INACTIF</span>':''}
+          </div>
+          <div class="agt-email">${u.email} · ${roleMap[u.role]||u.role}</div>
+        </div>
+        <div class="agt-stats">
+          <div class="agt-stat"><div class="agt-stat-val" style="color:var(--acc)">${u.tickets_ouverts}</div><div class="agt-stat-lbl">Ouverts</div></div>
+          <div class="agt-stat"><div class="agt-stat-val" style="color:var(--grn)">${u.tickets_resolus}</div><div class="agt-stat-lbl">Résolus</div></div>
+          <div class="agt-stat"><div class="agt-stat-val">${u.tickets_total}</div><div class="agt-stat-lbl">Total</div></div>
+        </div>
+        <div class="flex gap4">
+          <button class="btn btn-ghost btn-xs" onclick="filterByAgent('${u.id}','${u.prenom} ${u.nom}')">Voir tickets</button>
+          ${(ME.role==='directeur'||ME.role==='superviseur')?`<button class="btn btn-acc btn-xs" onclick="openEditAgent('${u.id}','${u.nom}','${u.prenom}','${u.email}','${u.role}')">✏️ Modifier</button>`:''}
+          ${ME.role==='directeur'?`<button class="btn btn-red btn-xs" onclick="deleteAgent('${u.id}','${u.prenom} ${u.nom}',${u.actif})">${u.actif?'Désactiver':'Activer'}</button>`:''}
+          ${ME.role==='directeur'?`<button class="btn btn-xs" style="background:rgba(255,61,90,.2);color:var(--red);border:1px solid var(--red)" onclick="deleteAgentPermanent('${u.id}','${u.prenom} ${u.nom}')">🗑</button>`:''}
+        </div>
+      </div>`).join('');
+  document.querySelectorAll('.sb-item').forEach(b=>b.addEventListener('click',()=>{if(window.innerWidth<=768)closeSidebar();}));
 }
 
 function filterAgentsList() {
-  const q = (document.getElementById('agtSearch')?.value||'').toLowerCase();
-  const role = document.getElementById('agtRole')?.value||'';
-  const status = document.getElementById('agtStatus')?.value;
+  const search = document.getElementById('agentSearch')?.value?.toLowerCase()||'';
+  const role = document.getElementById('agentFilterRole')?.value||'';
+  const statut = document.getElementById('agentFilterStatut')?.value;
   let filtered = _allAgents;
-  if (q) filtered = filtered.filter(u => `${u.prenom} ${u.nom} ${u.email}`.toLowerCase().includes(q));
-  if (role) filtered = filtered.filter(u => u.role === role);
-  if (status !== '' && status !== undefined && status !== null) filtered = filtered.filter(u => String(u.actif) === status);
+  if(search) filtered = filtered.filter(u=>(u.nom+' '+u.prenom).toLowerCase().includes(search)||u.email.toLowerCase().includes(search)||u.role.toLowerCase().includes(search));
+  if(role) filtered = filtered.filter(u=>u.role===role);
+  if(statut!=='') filtered = filtered.filter(u=>String(u.actif)===statut);
   renderAgentsList(filtered);
 }
-
-function resetAgentFilters() {
-  const s = document.getElementById('agtSearch'); if (s) s.value = '';
-  const r = document.getElementById('agtRole'); if (r) r.value = '';
-  const t = document.getElementById('agtStatus'); if (t) t.value = '';
+function resetAgentFilters(){
+  document.getElementById('agentSearch').value='';
+  document.getElementById('agentFilterRole').value='';
+  document.getElementById('agentFilterStatut').value='';
   renderAgentsList(_allAgents);
 }
 
@@ -1558,29 +1561,20 @@ async function openEditAgent(uid, nom, prenom, email, role) {
   } else {
     deleteBtn.style.display = 'none';
   }
-  // Load history
-  const histSection = document.getElementById('agentHistorySection');
-  const histList = document.getElementById('agentHistoryList');
-  histSection.style.display = 'none';
-  histList.innerHTML = '';
   document.getElementById('editAgentModal').classList.add('on');
-  try {
-    const history = await api('GET', '/users/' + uid + '/history');
-    if (history && history.length) {
-      const champLabel = {nom:'Nom',prenom:'Prénom',role:'Rôle',actif:'Statut',password:'Mot de passe'};
-      histList.innerHTML = history.map(h => {
-        const val = h.champ === 'actif'
-          ? `${h.ancienne_valeur==='1'?'Actif':'Inactif'} → ${h.nouvelle_valeur==='1'?'Actif':'Inactif'}`
-          : h.champ === 'password' ? '• Mot de passe modifié'
-          : `${h.ancienne_valeur} → ${h.nouvelle_valeur}`;
-        return `<div style="font-size:.73rem;padding:5px 8px;background:var(--b2);border-radius:6px;display:flex;justify-content:space-between;gap:8px">
-          <span><b>${champLabel[h.champ]||h.champ}</b> : ${val} <span style="color:var(--t3)">par ${h.modifie_par_nom}</span></span>
-          <span style="color:var(--t3);white-space:nowrap">${fmtDate(h.created_at)}</span>
-        </div>`;
-      }).join('');
-      histSection.style.display = 'block';
-    }
-  } catch(_) {}
+  const histEl = document.getElementById('agentHistory');
+  if(histEl) {
+    histEl.innerHTML = '<span style="color:var(--t3)">Chargement...</span>';
+    api('GET','/users/'+uid+'/history').then(hist=>{
+      if(!hist||hist.length===0){histEl.innerHTML='<span style="color:var(--t3)">Aucune modification enregistrée</span>';return;}
+      histEl.innerHTML = hist.map(h=>`
+        <div style="padding:5px 0;border-bottom:1px solid var(--b1);display:flex;gap:8px;align-items:flex-start">
+          <span style="color:var(--acc);font-weight:700;flex-shrink:0">${h.modifie_par_nom}</span>
+          <span style="flex:1">${h.champ} : ${h.ancienne_valeur} → ${h.nouvelle_valeur}</span>
+          <span style="color:var(--t3);flex-shrink:0">${fmtDate(h.created_at)}</span>
+        </div>`).join('');
+    }).catch(()=>{histEl.innerHTML='<span style="color:var(--t3)">Non disponible</span>';});
+  }
 }
 
 async function deleteAgentPermanent(uid, name) {
