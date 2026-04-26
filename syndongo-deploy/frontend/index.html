@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,14 +7,45 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
+  --mono:'JetBrains Mono',monospace;
+  --disp:'Syne',sans-serif;
+  --body:'Nunito',sans-serif;
+}
+
+/* THEME: Dark (défaut) */
+[data-theme="dark"] {
   --bg:#0b0d12;--s1:#111520;--s2:#171c2a;--s3:#1d2236;
   --b1:#1e2438;--b2:#262e48;--b3:#2e3855;
   --t1:#dde4f5;--t2:#8899cc;--t3:#4a5580;
   --acc:#4f8eff;--acc2:#2558d4;
   --grn:#00d68f;--ylw:#f5c542;--org:#ff7733;--red:#ff3d5a;--pur:#9b6dff;
-  --mono:'JetBrains Mono',monospace;
-  --disp:'Syne',sans-serif;
-  --body:'Nunito',sans-serif;
+}
+
+/* THEME: Light */
+[data-theme="light"] {
+  --bg:#f0f2f8;--s1:#ffffff;--s2:#f5f7fc;--s3:#eceef5;
+  --b1:#dde1ee;--b2:#c8cede;--b3:#b5bcce;
+  --t1:#1a1f35;--t2:#4a5580;--t3:#8899cc;
+  --acc:#2558d4;--acc2:#1a3fa8;
+  --grn:#00a36e;--ylw:#c99d22;--org:#cc5500;--red:#cc1a30;--pur:#7b4ddd;
+}
+
+/* THEME: Ocean Blue */
+[data-theme="ocean"] {
+  --bg:#020b18;--s1:#041525;--s2:#062035;--s3:#082845;
+  --b1:#0d3555;--b2:#124070;--b3:#175090;
+  --t1:#cceeff;--t2:#66aadd;--t3:#336688;
+  --acc:#00aaff;--acc2:#0077cc;
+  --grn:#00ffaa;--ylw:#ffcc00;--org:#ff8800;--red:#ff3355;--pur:#aa66ff;
+}
+
+/* THEME: Forest Green */
+[data-theme="forest"] {
+  --bg:#050e08;--s1:#0a1a0f;--s2:#0f2416;--s3:#142e1c;
+  --b1:#1a3d24;--b2:#22502f;--b3:#2a633a;
+  --t1:#d4f5dc;--t2:#7abf8a;--t3:#3d7a50;
+  --acc:#00cc66;--acc2:#009944;
+  --grn:#00ff88;--ylw:#ffdd00;--org:#ff8833;--red:#ff3344;--pur:#cc66ff;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;font-family:var(--body);background:var(--bg);color:var(--t1);}
@@ -40,6 +71,15 @@ input,select,textarea,button{font-family:var(--body);}
 .scroll{overflow-y:auto;}
 .spin{animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ THEME SWITCHER ══ */
+.theme-btn{padding:6px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:7px;cursor:pointer;font-size:18px;color:var(--t1);transition:.15s;}
+.theme-btn:hover{background:var(--s3);}
+.theme-panel{position:fixed;top:60px;right:160px;background:var(--s1);border:1px solid var(--b2);border-radius:12px;padding:10px;z-index:400;display:none;box-shadow:0 8px 32px rgba(0,0,0,.4);gap:6px;flex-direction:column;min-width:160px;}
+.theme-panel.on{display:flex;}
+.theme-option{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;border:2px solid transparent;transition:.15s;color:var(--t1);}
+.theme-option:hover{background:var(--s2);}
+.theme-option.active{border-color:var(--acc);background:var(--s2);}
 
 /* ══ LOGIN ══ */
 @keyframes loginFadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
@@ -426,6 +466,13 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
         <div class="ava" id="topAva">?</div>
         <div><div class="user-name" id="topName">-</div><div class="user-role-badge" id="topRole">-</div></div>
       </div>
+      <button class="theme-btn" onclick="toggleThemePanel()" title="Changer le thème">🎨</button>
+      <div class="theme-panel" id="themePanel">
+        <div class="theme-option" data-theme="dark" onclick="applyTheme('dark');toggleThemePanel()">🌙 Sombre</div>
+        <div class="theme-option" data-theme="light" onclick="applyTheme('light');toggleThemePanel()">☀️ Clair</div>
+        <div class="theme-option" data-theme="ocean" onclick="applyTheme('ocean');toggleThemePanel()">🌊 Océan</div>
+        <div class="theme-option" data-theme="forest" onclick="applyTheme('forest');toggleThemePanel()">🌿 Forêt</div>
+      </div>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Déconnexion</button>
     </div>
   </header>
@@ -690,6 +737,33 @@ let ME = JSON.parse(localStorage.getItem('syndongo_user') || 'null');
 let currentAlert = 'STD';
 let notifOpen = false;
 let notifPollInterval;
+
+// ══════════════════════════════════════════
+// THÈMES
+// ══════════════════════════════════════════
+const THEMES = ['dark','light','ocean','forest'];
+const THEME_LABELS = {'dark':'🌙 Sombre','light':'☀️ Clair','ocean':'🌊 Océan','forest':'🌿 Forêt'};
+let themeOpen = false;
+
+function initTheme() {
+  const saved = localStorage.getItem('syndongo_theme') || 'dark';
+  applyTheme(saved);
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('syndongo_theme', theme);
+  document.querySelectorAll('.theme-option').forEach(o => {
+    o.classList.toggle('active', o.dataset.theme === theme);
+  });
+}
+
+function toggleThemePanel() {
+  themeOpen = !themeOpen;
+  document.getElementById('themePanel').classList.toggle('on', themeOpen);
+}
+
+initTheme();
 
 // ══════════════════════════════════════════
 // API HELPER
@@ -1302,6 +1376,11 @@ async function markAllRead() {
 
 document.addEventListener('click', e => {
   if (!e.target.closest('.notif-panel') && !e.target.closest('.notif-btn') && !e.target.closest('.user-chip')) closeNotif();
+  if (!e.target.closest('.theme-panel') && !e.target.closest('.theme-btn')) {
+    themeOpen = false;
+    const tp = document.getElementById('themePanel');
+    if (tp) tp.classList.remove('on');
+  }
 });
 
 // ══════════════════════════════════════════
