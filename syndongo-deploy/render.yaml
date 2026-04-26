@@ -1,0 +1,30 @@
+services:
+  # ── BACKEND API ──
+  - type: web
+    name: syndongo-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_PATH
+        value: /opt/render/project/src/syndongo.db
+      - key: PORT
+        value: 8000
+    disk:
+      name: syndongo-data
+      mountPath: /opt/render/project/src
+      sizeGB: 1
+
+  # ── FRONTEND (Static Site) ──
+  - type: web
+    name: syndongo-app
+    runtime: static
+    rootDir: frontend
+    staticPublishPath: .
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache

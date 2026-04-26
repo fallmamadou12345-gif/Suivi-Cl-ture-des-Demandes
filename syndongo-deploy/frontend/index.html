@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SynDongo · Suivi & Clôture des Demandes</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d12;--s1:#111520;--s2:#171c2a;--s3:#1d2236;
+  --b1:#1e2438;--b2:#262e48;--b3:#2e3855;
+  --t1:#dde4f5;--t2:#8899cc;--t3:#4a5580;
+  --acc:#4f8eff;--acc2:#2558d4;
+  --grn:#00d68f;--ylw:#f5c542;--org:#ff7733;--red:#ff3d5a;--pur:#9b6dff;
+  --mono:'JetBrains Mono',monospace;
+  --disp:'Syne',sans-serif;
+  --body:'Nunito',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;font-family:var(--body);background:var(--bg);color:var(--t1);}
+input,select,textarea,button{font-family:var(--body);}
+
+/* ══ GLOBAL ══ */
+.hidden{display:none!important;}
+.flex{display:flex;}
+.col{flex-direction:column;}
+.gap4{gap:4px;}.gap8{gap:8px;}.gap12{gap:12px;}.gap16{gap:16px;}
+.ai-c{align-items:center;}.jc-sb{justify-content:space-between;}.jc-c{justify-content:center;}
+.f1{flex:1;}
+.mono{font-family:var(--mono);}
+.disp{font-family:var(--disp);}
+.text-muted{color:var(--t2);}
+.text-dim{color:var(--t3);}
+.bold{font-weight:700;}
+.w100{width:100%;}
+.p8{padding:8px;}.p12{padding:12px;}.p16{padding:16px;}.p20{padding:20px;}
+.r8{border-radius:8px;}.r10{border-radius:10px;}.r12{border-radius:12px;}
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:12px;}
+.card2{background:var(--s2);border:1px solid var(--b2);border-radius:10px;}
+.scroll{overflow-y:auto;}
+.spin{animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ LOGIN ══ */
+#loginPage{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(79,142,255,.12),transparent);
+}
+.login-box{
+  width:420px;background:var(--s1);border:1px solid var(--b2);
+  border-radius:20px;padding:40px;
+}
+.login-logo{text-align:center;margin-bottom:32px;}
+.login-logo-sq{width:56px;height:56px;background:var(--acc);border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-size:24px;font-weight:800;color:#fff;margin:0 auto 12px;}
+.login-title{font-family:var(--disp);font-size:22px;font-weight:800;}
+.login-sub{font-size:12px;color:var(--t3);font-family:var(--mono);letter-spacing:.5px;}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.form-label{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.7px;}
+.form-input,.form-select,.form-textarea{
+  background:var(--bg);border:1px solid var(--b2);border-radius:8px;
+  padding:10px 14px;font-size:13px;color:var(--t1);outline:none;transition:.15s;width:100%;
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--acc);}
+.form-input::placeholder{color:var(--t3);}
+.form-textarea{resize:vertical;min-height:72px;}
+option{background:var(--s1);}
+.btn{padding:9px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
+.btn:disabled{opacity:.5;pointer-events:none;}
+.btn-acc{background:var(--acc);color:#fff;}
+.btn-acc:hover{background:var(--acc2);}
+.btn-ghost{background:var(--s2);color:var(--t2);border:1px solid var(--b2);}
+.btn-ghost:hover{color:var(--t1);}
+.btn-grn{background:rgba(0,214,143,.15);color:var(--grn);border:1px solid rgba(0,214,143,.25);}
+.btn-grn:hover{background:var(--grn);color:#000;}
+.btn-red{background:rgba(255,61,90,.12);color:var(--red);border:1px solid rgba(255,61,90,.25);}
+.btn-red:hover{background:var(--red);color:#fff;}
+.btn-ylw{background:rgba(245,197,66,.1);color:var(--ylw);border:1px solid rgba(245,197,66,.25);}
+.btn-ylw:hover{background:var(--ylw);color:#000;}
+.btn-org{background:rgba(255,119,51,.1);color:var(--org);border:1px solid rgba(255,119,51,.25);}
+.btn-org:hover{background:var(--org);color:#fff;}
+.btn-sm{padding:5px 12px;font-size:11px;}
+.btn-xs{padding:3px 9px;font-size:10px;}
+.btn-full{width:100%;}
+.login-demos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:16px;}
+.demo-btn{padding:7px 4px;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid var(--b2);background:var(--s2);color:var(--t2);text-align:center;transition:.15s;font-family:var(--mono);}
+.demo-btn:hover{color:var(--t1);border-color:var(--b3);}
+.login-err{background:rgba(255,61,90,.1);border:1px solid rgba(255,61,90,.3);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin-bottom:14px;}
+
+/* ══ APP SHELL ══ */
+#app{display:grid;grid-template-columns:230px 1fr;grid-template-rows:56px 1fr;height:100vh;}
+
+/* ══ TOPBAR ══ */
+.topbar{
+  grid-column:1/-1;background:var(--s1);border-bottom:1px solid var(--b1);
+  display:flex;align-items:center;padding:0 20px;gap:16px;z-index:100;
+}
+.tl{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:800;font-size:17px;flex-shrink:0;}
+.tl-sq{width:30px;height:30px;background:var(--acc);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;}
+.tl-label{font-size:9px;font-family:var(--mono);color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-top:1px;}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.live{display:flex;align-items:center;gap:6px;font-size:11px;font-family:var(--mono);color:var(--grn);}
+.dot-p{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.notif-btn{position:relative;padding:6px 12px;background:rgba(255,61,90,.1);border:1px solid rgba(255,61,90,.25);border-radius:7px;font-size:11px;font-family:var(--mono);color:var(--red);cursor:pointer;display:flex;align-items:center;gap:5px;}
+.notif-btn .dot-p{background:var(--red);}
+.notif-count{position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);}
+.user-chip{display:flex;align-items:center;gap:8px;padding:5px 10px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;cursor:pointer;}
+.ava{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;}
+.ava-dir{background:linear-gradient(135deg,#c41a30,#ff3d5a);}
+.ava-sup{background:linear-gradient(135deg,#ff7733,#f5c542);}
+.ava-agt{background:linear-gradient(135deg,#2558d4,#4f8eff);}
+.user-name{font-size:12px;font-weight:700;}
+.user-role-badge{font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;}
+.role-dir{color:var(--red);}
+.role-sup{color:var(--org);}
+.role-agt{color:var(--acc);}
+
+/* ══ SIDEBAR ══ */
+.sidebar{background:var(--s1);border-right:1px solid var(--b1);overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.sb-sec{font-size:9px;font-family:var(--mono);color:var(--t3);letter-spacing:2px;text-transform:uppercase;padding:10px 8px 4px;}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--t2);border:none;background:none;width:100%;text-align:left;transition:.15s;}
+.sb-item:hover{color:var(--t1);background:var(--s2);}
+.sb-item.on{color:var(--t1);background:var(--s2);border:1px solid var(--b2);}
+.sb-ico{font-size:15px;width:18px;text-align:center;}
+.sb-badge{margin-left:auto;font-size:9px;font-family:var(--mono);font-weight:700;padding:2px 7px;border-radius:10px;}
+.sbb-red{background:rgba(255,61,90,.2);color:var(--red);}
+.sbb-ylw{background:rgba(245,197,66,.2);color:var(--ylw);}
+.sbb-acc{background:rgba(79,142,255,.2);color:var(--acc);}
+.sbb-grn{background:rgba(0,214,143,.2);color:var(--grn);}
+.sbb-org{background:rgba(255,119,51,.2);color:var(--org);}
+
+/* ══ MAIN ══ */
+.main-area{overflow-y:auto;background:var(--bg);}
+.view{display:none;padding:20px;flex-direction:column;gap:16px;}
+.view.on{display:flex;}
+.view-title{font-family:var(--disp);font-size:18px;font-weight:800;margin-bottom:4px;}
+
+/* ══ KPI STRIP ══ */
+.kpi-row{display:grid;gap:10px;}
+.kpi-row-5{grid-template-columns:repeat(5,1fr);}
+.kpi-row-4{grid-template-columns:repeat(4,1fr);}
+.kpi{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--kc,var(--acc));}
+.kpi-lbl{font-size:9.5px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.kpi-val{font-family:var(--disp);font-size:28px;font-weight:800;line-height:1;color:var(--kc,var(--t1));}
+.kpi-sub{font-size:10px;color:var(--t3);margin-top:3px;}
+
+/* ══ BADGE SYSTEM ══ */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;font-family:var(--mono);border:1px solid transparent;}
+.b-nouveau{background:rgba(79,142,255,.12);color:var(--acc);border-color:rgba(79,142,255,.25);}
+.b-encours{background:rgba(155,109,255,.12);color:var(--pur);border-color:rgba(155,109,255,.25);}
+.b-escalade{background:rgba(255,119,51,.12);color:var(--org);border-color:rgba(255,119,51,.25);}
+.b-resolu{background:rgba(0,214,143,.12);color:var(--grn);border-color:rgba(0,214,143,.25);}
+.b-cloture{background:rgba(74,85,128,.12);color:var(--t2);border-color:rgba(74,85,128,.25);}
+.b-urgence{background:rgba(255,61,90,.12);color:var(--red);border-color:rgba(255,61,90,.25);}
+.b-panne{background:rgba(245,197,66,.12);color:var(--ylw);border-color:rgba(245,197,66,.25);}
+.b-blocage{background:rgba(255,119,51,.12);color:var(--org);border-color:rgba(255,119,51,.25);}
+.b-application{background:rgba(79,142,255,.12);color:var(--acc);border-color:rgba(79,142,255,.25);}
+.b-std{background:rgba(74,85,128,.12);color:var(--t2);border-color:rgba(74,85,128,.25);}
+.b-critique{background:rgba(255,61,90,.15);color:var(--red);}
+.b-haute{background:rgba(255,119,51,.15);color:var(--org);}
+.b-normale{background:rgba(79,142,255,.15);color:var(--acc);}
+.b-basse{background:rgba(0,214,143,.15);color:var(--grn);}
+
+/* ══ TICKET CARDS ══ */
+.tkt-card{background:var(--s1);border:1px solid var(--b1);border-left:3px solid var(--tc,var(--b1));border-radius:8px;padding:12px 14px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px;}
+.tkt-card:hover{border-color:var(--acc);transform:translateY(-1px);}
+.tkt-info{flex:1;}
+.tkt-id{font-size:9.5px;font-family:var(--mono);color:var(--t3);margin-bottom:3px;}
+.tkt-drv{font-size:13px;font-weight:700;}
+.tkt-sub{font-size:11px;color:var(--t2);margin-top:2px;}
+.tkt-right{text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.tkt-age{font-size:9px;font-family:var(--mono);color:var(--t3);}
+
+/* ══ TABLE ══ */
+.tbl-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:10px;overflow:hidden;}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{background:var(--s2);padding:10px 14px;text-align:left;font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.7px;color:var(--t3);border-bottom:1px solid var(--b2);font-weight:600;white-space:nowrap;}
+.tbl td{padding:10px 14px;border-bottom:1px solid var(--b1);vertical-align:middle;}
+.tbl tr:last-child td{border:none;}
+.tbl tr:hover td{background:var(--s2);cursor:pointer;}
+.tbl-drv{font-weight:700;font-size:12.5px;}
+.tbl-sub{font-size:10.5px;color:var(--t2);}
+
+/* ══ FILTER BAR ══ */
+.filter-bar{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:12px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.filter-bar input{flex:1;min-width:200px;background:var(--bg);border:1px solid var(--b2);border-radius:7px;padding:7px 12px;font-size:12px;color:var(--t1);outline:none;transition:.15s;font-family:var(--mono);}
+.filter-bar input:focus{border-color:var(--acc);}
+.filter-bar input::placeholder{color:var(--t3);}
+.pill{padding:5px 13px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--b2);background:var(--s2);color:var(--t2);transition:.15s;font-family:var(--mono);}
+.pill:hover{color:var(--t1);}
+.pill.on{color:#fff;border-color:transparent;}
+select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-radius:7px;padding:6px 10px;font-size:11px;color:var(--t1);outline:none;font-family:var(--mono);}
+
+/* ══ TICKET CREATE FORM ══ */
+.form-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.alert-sel{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;}
+.ao{border-radius:8px;padding:10px 6px;text-align:center;cursor:pointer;border:2px solid var(--b2);transition:.15s;font-size:11px;font-weight:700;font-family:var(--mono);}
+.ao:hover,.ao.sel{transform:translateY(-1px);}
+.ao-em{font-size:17px;display:block;margin-bottom:3px;}
+.ao-std{background:rgba(79,142,255,.06);color:var(--t2);}
+.ao-std.sel{border-color:var(--acc);color:var(--t1);}
+.ao-pan{background:rgba(245,197,66,.08);color:var(--ylw);}
+.ao-pan.sel{border-color:var(--ylw);}
+.ao-blo{background:rgba(255,119,51,.08);color:var(--org);}
+.ao-blo.sel{border-color:var(--org);}
+.ao-urg{background:rgba(255,61,90,.1);color:var(--red);}
+.ao-urg.sel{border-color:var(--red);}
+
+/* ══ MODAL ══ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
+.modal-overlay.on{display:flex;}
+.modal{background:var(--s1);border:1px solid var(--b2);border-radius:16px;width:820px;max-width:100%;margin:auto;animation:mIn .25s ease;}
+@keyframes mIn{from{opacity:0;transform:scale(.96) translateY(-10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-head{padding:20px 24px 0;display:flex;align-items:flex-start;justify-content:space-between;}
+.modal-body{padding:20px 24px 24px;}
+.modal-title{font-family:var(--disp);font-size:19px;font-weight:800;}
+.modal-sub{font-size:11px;color:var(--t2);margin-top:3px;font-family:var(--mono);}
+.close-x{background:var(--s2);border:1px solid var(--b2);border-radius:7px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--t2);flex-shrink:0;}
+.close-x:hover{color:var(--t1);}
+.modal-grid{display:grid;grid-template-columns:1fr 260px;gap:16px;}
+
+/* STATUS FLOW */
+.sf{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;}
+.sf-step{display:flex;align-items:center;gap:5px;}
+.sf-dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--t3);font-family:var(--mono);font-weight:700;transition:.3s;}
+.sf-dot.done{border-color:var(--grn);background:rgba(0,214,143,.15);color:var(--grn);}
+.sf-dot.cur{border-color:var(--acc);background:rgba(79,142,255,.15);color:var(--acc);box-shadow:0 0 0 3px rgba(79,142,255,.12);}
+.sf-lbl{font-size:9px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;}
+.sf-lbl.done{color:var(--grn);}
+.sf-lbl.cur{color:var(--acc);}
+.sf-arr{color:var(--b3);font-size:12px;}
+
+/* ACTIVITY FEED */
+.act-item{display:flex;gap:10px;font-size:12px;margin-bottom:8px;}
+.act-av{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;}
+.act-box{flex:1;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:8px 10px;}
+.act-who{font-weight:700;font-size:11px;margin-bottom:2px;}
+.act-txt{color:var(--t2);line-height:1.45;}
+.act-ts{font-family:var(--mono);font-size:9px;color:var(--t3);margin-top:3px;}
+.act-sys{font-size:11px;color:var(--t3);font-family:var(--mono);padding:5px 10px;background:var(--s2);border:1px solid var(--b2);border-radius:6px;text-align:center;margin-bottom:8px;}
+
+/* INFO BLOCKS */
+.ib{background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:12px;margin-bottom:10px;}
+.ib-title{font-size:9px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
+.ib-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11.5px;border-bottom:1px solid var(--b1);}
+.ib-row:last-child{border:none;}
+.ib-k{color:var(--t2);}
+.ib-v{font-weight:700;font-family:var(--mono);font-size:10.5px;}
+
+/* STATUS CHANGE GRID */
+.sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.sc-b{padding:7px;border-radius:7px;font-size:10.5px;font-weight:700;cursor:pointer;border:1px solid;text-align:center;font-family:var(--mono);letter-spacing:.3px;transition:.15s;}
+.sc-b:hover{opacity:.8;}
+
+/* ══ AGENTS TABLE ══ */
+.agent-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--b1);transition:.15s;}
+.agent-row:hover{background:var(--s2);}
+.agent-row:last-child{border:none;}
+.agt-ava{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0;}
+.agt-info{flex:1;}
+.agt-name{font-weight:700;font-size:13px;}
+.agt-email{font-size:10.5px;font-family:var(--mono);color:var(--t3);}
+.agt-stats{display:flex;gap:16px;}
+.agt-stat{text-align:center;}
+.agt-stat-val{font-family:var(--disp);font-size:16px;font-weight:800;}
+.agt-stat-lbl{font-size:9px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.3px;}
+.online-dot{width:8px;height:8px;border-radius:50%;background:var(--grn);display:inline-block;}
+.offline-dot{width:8px;height:8px;border-radius:50%;background:var(--t3);display:inline-block;}
+
+/* ══ NOTIF PANEL ══ */
+.notif-panel{position:fixed;top:60px;right:16px;width:340px;background:var(--s1);border:1px solid var(--b2);border-radius:12px;z-index:300;display:none;box-shadow:0 8px 32px rgba(0,0,0,.6);}
+.notif-panel.on{display:block;}
+.np-head{padding:12px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;}
+.np-title{font-family:var(--disp);font-size:14px;font-weight:800;}
+.notif-item{padding:10px 14px;border-bottom:1px solid var(--b1);display:flex;gap:10px;font-size:11.5px;cursor:pointer;transition:.15s;}
+.notif-item:hover{background:var(--s2);}
+.notif-item:last-child{border:none;}
+.ni-ico{font-size:16px;}
+.ni-title{font-weight:700;}
+.ni-msg{color:var(--t2);margin-top:1px;line-height:1.4;}
+.ni-ts{font-family:var(--mono);font-size:9px;color:var(--t3);margin-top:2px;}
+.ni-unread{background:rgba(79,142,255,.08);}
+
+/* ══ TOAST ══ */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:1000;display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
+.toast{background:var(--s2);border:1px solid var(--b2);border-left:3px solid var(--grn);border-radius:8px;padding:10px 16px;font-size:12px;opacity:0;transform:translateX(20px);transition:.3s;pointer-events:none;max-width:340px;}
+.toast.on{opacity:1;transform:translateX(0);}
+.toast.err{border-left-color:var(--red);}
+
+/* ══ LOADING ══ */
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--t3);font-family:var(--mono);font-size:13px;}
+.loader{width:20px;height:20px;border:2px solid var(--b2);border-top-color:var(--acc);border-radius:50%;animation:spin .7s linear infinite;}
+
+/* ══ PROGRESS BARS ══ */
+.pbar-wrap{margin-bottom:8px;}
+.pbar-top{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;}
+.pbar{height:5px;background:var(--b2);border-radius:3px;overflow:hidden;}
+.pbar-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+
+/* ══ ROLE COLORS ══ */
+.role-dir-bg{background:linear-gradient(135deg,#c41a30,#ff3d5a)!important;}
+.role-sup-bg{background:linear-gradient(135deg,#cc5500,#ff7733)!important;}
+.role-agt-bg{background:linear-gradient(135deg,#2558d4,#4f8eff)!important;}
+
+/* ══ SECTION HEADER ══ */
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.sh-title{font-family:var(--disp);font-size:13.5px;font-weight:800;}
+.sh-action{font-size:11px;color:var(--acc);cursor:pointer;background:none;border:none;font-family:var(--mono);}
+
+/* DEMO CREDS BOX */
+.creds-box{background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:12px 14px;margin-top:16px;font-size:11px;font-family:var(--mono);color:var(--t2);}
+.creds-box strong{color:var(--t1);display:block;margin-bottom:6px;font-size:12px;}
+.cred-line{display:flex;justify-content:space-between;padding:2px 0;}
+.cred-role{color:var(--acc);}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN PAGE ══ -->
+<div id="loginPage">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-sq">T</div>
+      <div class="login-title">SynDongo</div>
+      <div class="login-sub">Suivi &amp; Clôture des Demandes</div>
+    </div>
+    <div id="loginErr" class="login-err hidden"></div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="loginEmail" type="email" placeholder="votre@email.sn">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe</label>
+      <input class="form-input" id="loginPw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-acc btn-full" id="loginBtn" onclick="doLogin()">Se connecter →</button>
+    <div class="creds-box">
+      <strong>🔑 Comptes de démonstration</strong>
+      <div class="cred-line"><span class="cred-role">Directeur</span><span>directeur@syndongo.sn / Admin2025!</span></div>
+      <div class="cred-line"><span class="cred-role">Superviseur</span><span>superviseur@syndongo.sn / Super2025!</span></div>
+      <div class="cred-line"><span class="cred-role">Agent</span><span>amadou@syndongo.sn / Agent2025!</span></div>
+    </div>
+    <div class="login-demos">
+      <div class="demo-btn" onclick="quickLogin('directeur@syndongo.sn','Admin2025!')">👑 Directeur</div>
+      <div class="demo-btn" onclick="quickLogin('superviseur@syndongo.sn','Super2025!')">🔰 Superviseur</div>
+      <div class="demo-btn" onclick="quickLogin('amadou@syndongo.sn','Agent2025!')">👤 Agent</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP SHELL ══ -->
+<div id="app" class="hidden">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="tl">
+      <div class="tl-sq">T</div>
+      <div>SynDongo<span class="tl-label">Suivi &amp; Clôture des Demandes</span></div>
+    </div>
+    <div class="tb-right">
+      <div class="live"><div class="dot-p"></div><span id="agentsOnline">17 agents</span></div>
+      <div class="notif-btn" id="notifBtn" onclick="toggleNotif()">
+        <div class="dot-p"></div><span id="notifText">Alertes</span>
+        <div class="notif-count hidden" id="notifCount">0</div>
+      </div>
+      <div class="user-chip" onclick="toggleNotif()">
+        <div class="ava" id="topAva">?</div>
+        <div><div class="user-name" id="topName">-</div><div class="user-role-badge" id="topRole">-</div></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <!-- NOTIF PANEL -->
+  <div class="notif-panel" id="notifPanel">
+    <div class="np-head">
+      <span class="np-title">🔔 Notifications</span>
+      <button class="btn btn-ghost btn-xs" onclick="markAllRead()">Tout lire</button>
+    </div>
+    <div id="notifList"><div class="loading"><div class="loader"></div>Chargement...</div></div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <!-- MAIN -->
+  <main class="main-area">
+
+    <!-- VIEW: Mon Espace (agent) -->
+    <div class="view" id="view-home">
+      <div class="view-title" id="homeTitle">Mon Espace</div>
+      <div class="kpi-row kpi-row-4" id="homeKPIs"></div>
+      <!-- Tickets non résolus (agent) -->
+      <div class="sh"><div class="sh-title">⚡ Tickets non résolus</div><span class="sh-action" onclick="goView('tickets')">Voir tout →</span></div>
+      <div id="homeOpenTickets" class="flex col gap8"></div>
+      <div class="sh" style="margin-top:4px"><div class="sh-title">📋 Mes tickets récents</div></div>
+      <div id="homeRecentTickets" class="flex col gap8"></div>
+    </div>
+
+    <!-- VIEW: Tous les Tickets -->
+    <div class="view" id="view-tickets">
+      <div class="flex ai-c jc-sb"><div class="view-title">🎫 Suivi des tickets</div>
+        <button class="btn btn-acc btn-sm" onclick="goView('new-ticket')">+ Nouveau ticket</button>
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="tktSearch" placeholder="Rechercher chauffeur, ID, catégorie..." oninput="loadTickets()">
+        <select class="form-select-sm" id="tktStatut" onchange="loadTickets()">
+          <option value="">Tous statuts</option>
+          <option>Nouveau</option><option>En cours</option><option>Escaladé</option><option>Résolu</option><option>Clôturé</option>
+        </select>
+        <select class="form-select-sm" id="tktAlerte" onchange="loadTickets()">
+          <option value="">Toutes alertes</option>
+          <option>URGENCE</option><option>PANNE</option><option>BLOCAGE</option><option>APPLICATION</option><option>STD</option>
+        </select>
+        <select class="form-select-sm" id="tktAgent" onchange="loadTickets()">
+          <option value="">Tous agents</option>
+        </select>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr>
+            <th>Ticket</th><th>Chauffeur</th><th>Problème</th>
+            <th>Alerte</th><th>Statut</th><th>Priorité</th>
+            <th>Agent</th><th>Ouvert</th><th>Durée</th>
+          </tr></thead>
+          <tbody id="tktTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEW: Nouveau ticket -->
+    <div class="view" id="view-new-ticket">
+      <div class="view-title">🎫 Nouveau ticket post-appel</div>
+      <div class="card p16">
+        <div class="form-grid2" style="margin-bottom:10px">
+          <div class="form-group"><label class="form-label">ID Yango*</label><input class="form-input" id="nDriver" placeholder="Ex: YNG-48821"></div>
+          <div class="form-group"><label class="form-label">Nom chauffeur</label><input class="form-input" id="nName" placeholder="Mamadou Fall"></div>
+        </div>
+        <div class="form-grid3" style="margin-bottom:10px">
+          <div class="form-group"><label class="form-label">Téléphone</label><input class="form-input" id="nTel" placeholder="+221 77 xxx xx xx"></div>
+          <div class="form-group"><label class="form-label">Plaque</label><input class="form-input" id="nPlate" placeholder="DK-1234-AB"></div>
+          <div class="form-group"><label class="form-label">Priorité</label>
+            <select class="form-select" id="nPrio">
+              <option value="normale">🔵 Normale</option>
+              <option value="haute">🟠 Haute</option>
+              <option value="critique">🔴 Critique</option>
+              <option value="basse">🟢 Basse</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid2" style="margin-bottom:10px">
+          <div class="form-group"><label class="form-label">Catégorie*</label>
+            <select class="form-select" id="nCat" onchange="updateNSub()">
+              <option value="">Sélectionner...</option>
+              <option value="app">📱 Problème Application Yango</option>
+              <option value="blocage">🚫 Blocage Compte / Suspension</option>
+              <option value="finance">💰 Finance / Solde / Retrait</option>
+              <option value="vehicule">🔧 Panne / Véhicule</option>
+              <option value="accident">🚨 Accident / Urgence</option>
+              <option value="docs">📄 Documents / Administration</option>
+              <option value="autre">❓ Autre</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Sous-catégorie*</label>
+            <select class="form-select" id="nSub"><option>— choisir catégorie —</option></select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label class="form-label">Niveau d'alerte & routage automatique</label>
+          <div class="alert-sel">
+            <div class="ao ao-std sel" onclick="selAo(this,'STD')"><span class="ao-em">⚪</span>Standard<br><small style="opacity:.6">File agent</small></div>
+            <div class="ao ao-pan" onclick="selAo(this,'PANNE')"><span class="ao-em">🟡</span>Panne<br><small style="opacity:.6">→ Superviseur</small></div>
+            <div class="ao ao-blo" onclick="selAo(this,'BLOCAGE')"><span class="ao-em">🟠</span>Blocage<br><small style="opacity:.6">→ Fleet Manager</small></div>
+            <div class="ao ao-urg" onclick="selAo(this,'URGENCE')"><span class="ao-em">🔴</span>Urgence<br><small style="opacity:.6">→ FM + Secours</small></div>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Notes de l'appel</label>
+          <textarea class="form-textarea" id="nNotes" placeholder="Résumé du problème, actions prises, informations pour le suivi..." style="min-height:90px"></textarea>
+        </div>
+        <div class="flex gap8 jc-sb">
+          <button class="btn btn-ghost" onclick="goView('tickets')">Annuler</button>
+          <button class="btn btn-acc" id="createTktBtn" onclick="createTicket()">Créer le ticket →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: Agents (superviseur / directeur) -->
+    <div class="view" id="view-agents">
+      <div class="flex ai-c jc-sb"><div class="view-title">👥 Gestion des agents</div>
+        <button class="btn btn-acc btn-sm" onclick="openCreateAgent()">+ Créer un compte</button>
+      </div>
+      <div class="kpi-row kpi-row-4" id="agentsKPIs"></div>
+      <div class="card">
+        <div id="agentsList"></div>
+      </div>
+    </div>
+
+    <!-- VIEW: Analytics (superviseur / directeur) -->
+    <div class="view" id="view-analytics">
+      <div class="view-title">📊 Analytics & Performance</div>
+      <div class="kpi-row kpi-row-4" id="analyticsKPIs"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="card p16">
+          <div class="sh-title" style="margin-bottom:12px">📊 Motifs d'appels</div>
+          <div id="motifsChart"></div>
+        </div>
+        <div class="card p16">
+          <div class="sh-title" style="margin-bottom:12px">🏆 Performance par agent</div>
+          <div id="agentPerf"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══ MODAL TICKET DETAIL ══ -->
+<div class="modal-overlay" id="tktModal" onclick="if(event.target===this)closeTktModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div><div class="modal-title" id="mTitle">-</div><div class="modal-sub" id="mSub">-</div></div>
+      <div class="close-x" onclick="closeTktModal()">×</div>
+    </div>
+    <div class="modal-body" id="mBody"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL CREATE AGENT ══ -->
+<div class="modal-overlay" id="agentModal" onclick="if(event.target===this)closeAgentModal()">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <div><div class="modal-title">Créer un compte agent</div></div>
+      <div class="close-x" onclick="closeAgentModal()">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid2">
+        <div class="form-group"><label class="form-label">Nom*</label><input class="form-input" id="aNom" placeholder="Fall"></div>
+        <div class="form-group"><label class="form-label">Prénom*</label><input class="form-input" id="aPrenom" placeholder="Mamadou"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Email*</label><input class="form-input" id="aEmail" type="email" placeholder="mamadou@syndongo.sn"></div>
+      <div class="form-grid2">
+        <div class="form-group"><label class="form-label">Mot de passe*</label><input class="form-input" id="aPw" type="password" placeholder="Min. 8 caractères"></div>
+        <div class="form-group"><label class="form-label">Rôle</label>
+          <select class="form-select" id="aRole">
+            <option value="agent">Agent Call Center</option>
+            <option value="superviseur">Superviseur</option>
+            <option value="directeur">Directeur</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap8 jc-sb" style="margin-top:8px">
+        <button class="btn btn-ghost" onclick="closeAgentModal()">Annuler</button>
+        <button class="btn btn-acc" onclick="createAgent()">Créer le compte →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG - Remplacer par votre URL Render
+// ══════════════════════════════════════════
+const API = window.location.hostname === 'localhost'
+  ? 'http://localhost:8000'
+  : `${window.location.origin.replace('5500','8000')}`;
+// ↑ Sur Render, l'URL sera automatiquement la même origine
+// Si séparé: const API = 'https://syndongo-api.onrender.com'
+
+let TOKEN = localStorage.getItem('syndongo_token');
+let ME = JSON.parse(localStorage.getItem('syndongo_user') || 'null');
+let currentAlert = 'STD';
+let notifOpen = false;
+let notifPollInterval;
+
+// ══════════════════════════════════════════
+// API HELPER
+// ══════════════════════════════════════════
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: {'Content-Type':'application/json', ...(TOKEN ? {'Authorization':'Bearer '+TOKEN} : {})}
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API+path, opts);
+  if (r.status === 401) { logout(); return null; }
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({detail:'Erreur réseau'}));
+    throw new Error(e.detail || 'Erreur');
+  }
+  return r.json();
+}
+
+// ══════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw = document.getElementById('loginPw').value;
+  if (!email || !pw) return showLoginErr('Remplissez tous les champs');
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Connexion...';
+  try {
+    const r = await api('POST','/auth/login',{email,password:pw});
+    if (!r) return;
+    TOKEN = r.token; ME = r.user;
+    localStorage.setItem('syndongo_token', TOKEN);
+    localStorage.setItem('syndongo_user', JSON.stringify(ME));
+    enterApp();
+  } catch(e) {
+    showLoginErr(e.message);
+  } finally { btn.disabled=false; btn.textContent='Se connecter →'; }
+}
+
+function quickLogin(email,pw) {
+  document.getElementById('loginEmail').value = email;
+  document.getElementById('loginPw').value = pw;
+  doLogin();
+}
+
+function showLoginErr(msg) {
+  const el = document.getElementById('loginErr');
+  el.textContent = '⚠ '+msg; el.classList.remove('hidden');
+}
+
+function logout() {
+  TOKEN = null; ME = null;
+  localStorage.removeItem('syndongo_token'); localStorage.removeItem('syndongo_user');
+  clearInterval(notifPollInterval);
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('loginPage').classList.remove('hidden');
+  document.getElementById('loginErr').classList.add('hidden');
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPw').value = '';
+}
+
+// ══════════════════════════════════════════
+// ENTER APP
+// ══════════════════════════════════════════
+function enterApp() {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  setupTopbar();
+  buildSidebar();
+  goView('home');
+  loadNotifs();
+  notifPollInterval = setInterval(loadNotifs, 30000);
+}
+
+function setupTopbar() {
+  const roleMap = {directeur:'Directeur',superviseur:'Superviseur',agent:'Agent'};
+  const clsMap = {directeur:'ava-dir',superviseur:'ava-sup',agent:'ava-agt'};
+  const colorMap = {directeur:'role-dir',superviseur:'role-sup',agent:'role-agt'};
+  const initials = (ME.prenom[0]+ME.nom[0]).toUpperCase();
+  document.getElementById('topAva').textContent = initials;
+  document.getElementById('topAva').className = 'ava '+clsMap[ME.role];
+  document.getElementById('topName').textContent = ME.prenom+' '+ME.nom;
+  document.getElementById('topRole').textContent = roleMap[ME.role];
+  document.getElementById('topRole').className = 'user-role-badge '+colorMap[ME.role];
+}
+
+// ══════════════════════════════════════════
+// SIDEBAR
+// ══════════════════════════════════════════
+function buildSidebar() {
+  const sb = document.getElementById('sidebar');
+  const role = ME.role;
+  let html = '';
+  if (role === 'agent') {
+    html += `
+      <div class="sb-sec">Mon espace</div>
+      <button class="sb-item on" onclick="goView('home')"><span class="sb-ico">🏠</span>Tableau de bord</button>
+      <button class="sb-item" onclick="goView('new-ticket')"><span class="sb-ico">✏️</span>Nouveau ticket</button>
+      <div class="sb-sec">Tickets</div>
+      <button class="sb-item" onclick="goViewFilter('tickets','Nouveau')"><span class="sb-ico">🆕</span>Nouveaux<span class="sb-badge sbb-acc" id="sb-nouveau">-</span></button>
+      <button class="sb-item" onclick="goViewFilter('tickets','En cours')"><span class="sb-ico">⏳</span>En cours<span class="sb-badge sbb-org" id="sb-encours">-</span></button>
+      <button class="sb-item" onclick="goViewFilter('tickets','Escaladé')"><span class="sb-ico">⚡</span>Escaladés<span class="sb-badge sbb-red" id="sb-escalade">-</span></button>
+      <button class="sb-item" onclick="goView('tickets')"><span class="sb-ico">📋</span>Tous mes tickets</button>`;
+  } else if (role === 'superviseur') {
+    html += `
+      <div class="sb-sec">Supervision</div>
+      <button class="sb-item on" onclick="goView('home')"><span class="sb-ico">🏠</span>Vue globale</button>
+      <button class="sb-item" onclick="goView('new-ticket')"><span class="sb-ico">✏️</span>Nouveau ticket</button>
+      <button class="sb-item" onclick="goView('agents')"><span class="sb-ico">👥</span>Mes agents</button>
+      <button class="sb-item" onclick="goView('analytics')"><span class="sb-ico">📊</span>Analytics</button>
+      <div class="sb-sec">Tickets</div>
+      <button class="sb-item" onclick="goViewFilter('tickets','Escaladé')"><span class="sb-ico">🔴</span>Escaladés<span class="sb-badge sbb-red" id="sb-escalade">-</span></button>
+      <button class="sb-item" onclick="goViewFilter('tickets','')"><span class="sb-ico">🎫</span>Tous les tickets</button>`;
+  } else if (role === 'directeur') {
+    html += `
+      <div class="sb-sec">Direction</div>
+      <button class="sb-item on" onclick="goView('home')"><span class="sb-ico">👑</span>Tableau de bord</button>
+      <button class="sb-item" onclick="goView('agents')"><span class="sb-ico">👥</span>Équipe & comptes</button>
+      <button class="sb-item" onclick="goView('analytics')"><span class="sb-ico">📊</span>Analytics</button>
+      <div class="sb-sec">Tickets</div>
+      <button class="sb-item" onclick="goViewFilter('tickets','Escaladé')"><span class="sb-ico">🚨</span>Urgences & escalades<span class="sb-badge sbb-red" id="sb-escalade">-</span></button>
+      <button class="sb-item" onclick="goView('tickets')"><span class="sb-ico">🎫</span>Tous les tickets</button>`;
+  }
+  sb.innerHTML = html;
+}
+
+function goViewFilter(view, statut) {
+  document.getElementById('tktStatut') && (document.getElementById('tktStatut').value = statut);
+  goView(view);
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function goView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  document.querySelectorAll('.sb-item').forEach(b => b.classList.remove('on'));
+  const el = document.getElementById('view-'+name);
+  if (el) el.classList.add('on');
+  // Highlight sidebar
+  document.querySelectorAll('.sb-item').forEach(b => {
+    if (b.textContent.toLowerCase().includes(name.toLowerCase().replace('-',' '))) b.classList.add('on');
+  });
+  // Load data
+  if (name === 'home') loadHome();
+  else if (name === 'tickets') loadTickets();
+  else if (name === 'agents') loadAgents();
+  else if (name === 'analytics') loadAnalytics();
+}
+
+// ══════════════════════════════════════════
+// HOME / DASHBOARD
+// ══════════════════════════════════════════
+async function loadHome() {
+  try {
+    const stats = await api('GET','/tickets/stats');
+    if (!stats) return;
+
+    // KPIs
+    const kpiEl = document.getElementById('homeKPIs');
+    if (ME.role === 'agent') {
+      kpiEl.innerHTML = `
+        ${kpi('Mes tickets ouverts', stats.total - stats.resolu - stats.cloture, 'var(--acc)')}
+        ${kpi('Non résolus', (stats.nouveau||0)+(stats.en_cours||0)+(stats.escalade||0), 'var(--red)')}
+        ${kpi('Résolus', stats.resolu, 'var(--grn)')}
+        ${kpi('Total créés', stats.total, 'var(--t2)')}`;
+    } else {
+      kpiEl.innerHTML = `
+        ${kpi('Total tickets', stats.total, 'var(--acc)')}
+        ${kpi('Non résolus', (stats.nouveau||0)+(stats.en_cours||0)+(stats.escalade||0), 'var(--red)')}
+        ${kpi('Urgences actives', stats.urgences, 'var(--red)')}
+        ${kpi('Résolus', stats.resolu, 'var(--grn)')}`;
+    }
+
+    // Update sidebar badges
+    ['nouveau','escalade','en_cours'].forEach(k => {
+      const el = document.getElementById('sb-'+k.replace('_',''));
+      if (el) el.textContent = stats[k] || 0;
+    });
+
+    // Open tickets
+    const tickets = await api('GET', '/tickets?');
+    if (!tickets) return;
+    const open = tickets.filter(t => !['Résolu','Clôturé'].includes(t.statut));
+
+    const openEl = document.getElementById('homeOpenTickets');
+    if (open.length === 0) {
+      openEl.innerHTML = '<div class="loading" style="padding:20px;color:var(--grn)">✅ Aucun ticket non résolu</div>';
+    } else {
+      openEl.innerHTML = open.slice(0,10).map(t => tktCard(t)).join('');
+    }
+
+    // Recent
+    const recentEl = document.getElementById('homeRecentTickets');
+    const resolved = tickets.filter(t => ['Résolu','Clôturé'].includes(t.statut));
+    recentEl.innerHTML = resolved.slice(0,5).map(t => tktCard(t)).join('');
+
+  } catch(e) { showToast(e.message, true); }
+}
+
+function kpi(lbl, val, color) {
+  return `<div class="kpi" style="--kc:${color}">
+    <div class="kpi-lbl">${lbl}</div>
+    <div class="kpi-val">${val ?? 0}</div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// TICKETS LIST
+// ══════════════════════════════════════════
+async function loadTickets() {
+  const tbody = document.getElementById('tktTbody');
+  tbody.innerHTML = '<tr><td colspan="9"><div class="loading"><div class="loader"></div>Chargement...</div></td></tr>';
+  const search = document.getElementById('tktSearch')?.value?.toLowerCase()||'';
+  const statut = document.getElementById('tktStatut')?.value||'';
+  const alerte = document.getElementById('tktAlerte')?.value||'';
+  const agent = document.getElementById('tktAgent')?.value||'';
+  let url = '/tickets?';
+  if (statut) url += `statut=${encodeURIComponent(statut)}&`;
+  if (alerte) url += `alerte=${encodeURIComponent(alerte)}&`;
+  if (agent) url += `agent_id=${encodeURIComponent(agent)}&`;
+  try {
+    let tickets = await api('GET', url);
+    if (!tickets) return;
+    if (search) tickets = tickets.filter(t =>
+      t.driver_yango?.toLowerCase().includes(search)||
+      t.driver_nom?.toLowerCase().includes(search)||
+      t.sous_categorie?.toLowerCase().includes(search)||
+      t.id?.toLowerCase().includes(search));
+    tbody.innerHTML = tickets.length ? tickets.map(t => tktRow(t)).join('') :
+      '<tr><td colspan="9" style="text-align:center;color:var(--t3);padding:30px">Aucun ticket trouvé</td></tr>';
+  } catch(e) { tbody.innerHTML = `<tr><td colspan="9" style="color:var(--red);padding:20px">${e.message}</td></tr>`; }
+}
+
+function tktRow(t) {
+  const ac = alertColor(t.alerte), sc = statusBadge(t.statut), pr = prioBadge(t.priorite);
+  return `<tr onclick="openTicket('${t.id}')">
+    <td><span class="mono" style="font-size:10px;color:var(--t3)">TKT-${t.numero}</span></td>
+    <td><div class="tbl-drv">${t.driver_nom||t.driver_yango}</div><div class="tbl-sub">${t.driver_yango}</div></td>
+    <td><div class="tbl-sub">${t.sous_categorie}</div></td>
+    <td><span class="badge b-${t.alerte.toLowerCase()}">${t.alerte}</span></td>
+    <td>${sc}</td>
+    <td>${pr}</td>
+    <td style="font-size:11px;color:var(--t2)">${t.agent_nom||'-'}</td>
+    <td style="font-family:var(--mono);font-size:10px;color:var(--t3)">${fmtDate(t.created_at)}</td>
+    <td style="font-family:var(--mono);font-size:10px;color:${ageColor(t.created_at,t.statut)}">${ageStr(t.created_at,t.statut)}</td>
+  </tr>`;
+}
+
+function tktCard(t) {
+  const clr = {URGENCE:'var(--red)',PANNE:'var(--ylw)',BLOCAGE:'var(--org)',APPLICATION:'var(--acc)',STD:'var(--b2)'}[t.alerte]||'var(--b2)';
+  return `<div class="tkt-card" style="--tc:${clr}" onclick="openTicket('${t.id}')">
+    <div class="tkt-info">
+      <div class="tkt-id">TKT-${t.numero} · ${fmtDate(t.created_at)}</div>
+      <div class="tkt-drv">${t.driver_nom||t.driver_yango} <span style="font-size:10px;font-family:var(--mono);color:var(--t3)">${t.driver_yango}</span></div>
+      <div class="tkt-sub">${t.sous_categorie}</div>
+    </div>
+    <div class="tkt-right">
+      ${statusBadge(t.statut)}
+      <span class="badge b-${t.alerte.toLowerCase()}">${t.alerte}</span>
+      <span class="tkt-age" style="color:${ageColor(t.created_at,t.statut)}">⏱ ${ageStr(t.created_at,t.statut)}</span>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+// TICKET DETAIL MODAL
+// ══════════════════════════════════════════
+async function openTicket(id) {
+  document.getElementById('tktModal').classList.add('on');
+  document.getElementById('mTitle').textContent = 'Chargement...';
+  document.getElementById('mSub').textContent = '';
+  document.getElementById('mBody').innerHTML = '<div class="loading"><div class="loader"></div>Chargement du ticket...</div>';
+  try {
+    const t = await api('GET','/tickets/'+id);
+    if (!t) return;
+    renderTicketModal(t);
+  } catch(e) { document.getElementById('mBody').innerHTML = `<div style="color:var(--red);padding:20px">${e.message}</div>`; }
+}
+
+function renderTicketModal(t) {
+  document.getElementById('mTitle').textContent = `TKT-${t.numero} — ${t.sous_categorie}`;
+  document.getElementById('mSub').textContent = `${t.driver_nom||t.driver_yango} · ${t.driver_yango} · ${fmtDate(t.created_at)} · ⏱ ${ageStr(t.created_at,t.statut)}`;
+  const STATUTS = ['Nouveau','En cours','Escaladé','Résolu','Clôturé'];
+  const idx = STATUTS.indexOf(t.statut);
+  const flow = STATUTS.map((s,i) => {
+    const cls = i<idx?'done':i===idx?'cur':'';
+    const lbl = i<idx?'done':i===idx?'cur':'';
+    return `<div class="sf-step"><div class="sf-dot ${cls}">${i<idx?'✓':i+1}</div><span class="sf-lbl ${lbl}">${s}</span></div>${i<4?'<span class="sf-arr">→</span>':''}`;
+  }).join('');
+
+  const acts = (t.activity||[]).map(a => {
+    if (a.user_nom==='Système') return `<div class="act-sys">🤖 ${a.contenu} · ${fmtTime(a.created_at)}</div>`;
+    const init = a.user_nom.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return `<div class="act-item"><div class="act-av" style="background:var(--acc)">${init}</div>
+      <div class="act-box"><div class="act-who">${a.user_nom}</div><div class="act-txt">${a.contenu}</div><div class="act-ts">${fmtDate(a.created_at)} ${fmtTime(a.created_at)}</div></div></div>`;
+  }).join('')||'<div class="act-sys">Aucune activité enregistrée</div>';
+
+  const canEdit = true;
+  const isOwn = t.agent_id === ME.id || ME.role !== 'agent';
+
+  const statusBtns = canEdit && isOwn ? `
+    <div class="ib" style="margin-bottom:0">
+      <div class="ib-title">Changer statut</div>
+      <div class="sc-grid">
+        <div class="sc-b" style="background:rgba(79,142,255,.1);border-color:rgba(79,142,255,.25);color:var(--acc)" onclick="changeStatus('${t.id}','En cours')">En cours</div>
+        <div class="sc-b" style="background:rgba(155,109,255,.1);border-color:rgba(155,109,255,.25);color:var(--pur)" onclick="changeStatus('${t.id}','Escaladé')">Escaladé</div>
+        <div class="sc-b" style="background:rgba(0,214,143,.1);border-color:rgba(0,214,143,.25);color:var(--grn)" onclick="changeStatus('${t.id}','Résolu')">✓ Résolu</div>
+        <div class="sc-b" style="background:rgba(74,85,128,.1);border-color:rgba(74,85,128,.25);color:var(--t2)" onclick="changeStatus('${t.id}','Clôturé')">Clôturé</div>
+      </div>
+    </div>` : '';
+
+  const escaladeBtns = (ME.role==='agent'||ME.role==='superviseur') ? `
+    <div class="ib">
+      <div class="ib-title">Escalade rapide</div>
+      <div class="flex col gap4" style="margin-top:4px">
+        <button class="btn btn-red btn-sm" onclick="addActivityAndStatus('${t.id}','Fleet Manager alerté — Escalade urgente','URGENCE')">🔴 Alerter Fleet Manager</button>
+        <button class="btn btn-ghost btn-sm" onclick="addActivity('${t.id}','Escalade superviseur déclenchée')">🔵 Passer au superviseur</button>
+      </div>
+    </div>` : '';
+
+  const commentBox = isOwn ? `
+    <div style="border-top:1px solid var(--b1);padding-top:14px;margin-top:6px">
+      <textarea class="form-textarea" id="commentArea" placeholder="Ajouter une note, action prise, mise à jour..." style="height:60px;margin-bottom:8px"></textarea>
+      <div class="flex gap8 jc-sb">
+        <button class="btn btn-ghost btn-sm" onclick="addActivity('${t.id}','',true)">Ajouter note interne</button>
+        <button class="btn btn-grn btn-sm" onclick="addActivity('${t.id}','')">Enregistrer action →</button>
+      </div>
+    </div>` : '';
+
+  document.getElementById('mBody').innerHTML = `
+    <div class="sf">${flow}</div>
+    <div class="modal-grid">
+      <div>
+        <div class="ib" style="margin-bottom:14px">
+          <div class="ib-title">📝 Description</div>
+          <p style="font-size:12.5px;color:var(--t2);line-height:1.6">${t.notes||'Aucune note.'}</p>
+        </div>
+        <div class="ib-title" style="margin-bottom:8px">📋 Fil d'activité</div>
+        <div id="actFeed">${acts}</div>
+        ${commentBox}
+      </div>
+      <div>
+        <div class="ib">
+          <div class="ib-title">Informations</div>
+          <div class="ib-row"><span class="ib-k">Statut</span>${statusBadge(t.statut)}</div>
+          <div class="ib-row"><span class="ib-k">Alerte</span><span class="badge b-${t.alerte.toLowerCase()}">${t.alerte}</span></div>
+          <div class="ib-row"><span class="ib-k">Priorité</span>${prioBadge(t.priorite)}</div>
+          <div class="ib-row"><span class="ib-k">Agent</span><span class="ib-v">${t.agent_nom||'-'}</span></div>
+          <div class="ib-row"><span class="ib-k">Catégorie</span><span class="ib-v" style="font-size:10px">${t.categorie}</span></div>
+          <div class="ib-row"><span class="ib-k">Véhicule</span><span class="ib-v">${t.driver_plaque||'-'}</span></div>
+          <div class="ib-row"><span class="ib-k">Téléphone</span><span class="ib-v">${t.driver_tel||'-'}</span></div>
+          <div class="ib-row"><span class="ib-k">Durée ouverte</span><span class="ib-v" style="color:${ageColor(t.created_at,t.statut)}">${ageStr(t.created_at,t.statut)}</span></div>
+        </div>
+        ${statusBtns}
+        ${escaladeBtns}
+      </div>
+    </div>`;
+}
+
+function closeTktModal() { document.getElementById('tktModal').classList.remove('on'); }
+
+async function changeStatus(id, status) {
+  try {
+    await api('PATCH','/tickets/'+id,{statut:status});
+    showToast(`✓ Statut mis à jour : ${status}`);
+    openTicket(id);
+    loadHome();
+    if (document.getElementById('view-tickets').classList.contains('on')) loadTickets();
+  } catch(e) { showToast(e.message, true); }
+}
+
+async function addActivity(id, forceTxt, isNote) {
+  const area = document.getElementById('commentArea');
+  const txt = forceTxt || area?.value?.trim();
+  if (!txt) { showToast('⚠ Saisissez une note', true); return; }
+  try {
+    await api('POST',`/tickets/${id}/activity`,{contenu:txt,type:isNote?'note':'action'});
+    if (area) area.value='';
+    showToast('✓ Activité enregistrée');
+    openTicket(id);
+  } catch(e) { showToast(e.message,true); }
+}
+
+async function addActivityAndStatus(id, txt, escaladeType) {
+  await addActivity(id, txt);
+  await changeStatus(id, 'Escaladé');
+}
+
+// ══════════════════════════════════════════
+// CREATE TICKET
+// ══════════════════════════════════════════
+const SUBCATS = {
+  app:['Déconnexion répétée','GPS ne fonctionne pas','Erreur score chauffeur','Pas de courses','Application crash','Compte non vérifié'],
+  blocage:['Suspension compte Yango','Blocage sans notification','Document manquant','Infraction signalée','Compte désactivé'],
+  finance:['Solde Wave bloqué','Retrait impossible','Bonus manquant','Erreur de paiement','Course non créditée'],
+  vehicule:['Panne moteur','Crevaison','Panne électrique','Boîte de vitesse','Problème freins'],
+  accident:['Collision circulation','Tentative agression','Accident grave','Accrochage mineur'],
+  docs:['Renouvellement carte grise','Assurance expirée','Contrôle technique','Autorisation VTC'],
+  autre:['Question générale','Information partenaire','Demande formation','Autre']
+};
+
+function updateNSub() {
+  const cat = document.getElementById('nCat').value;
+  const sel = document.getElementById('nSub');
+  sel.innerHTML = (SUBCATS[cat]||['Autre']).map(s=>`<option>${s}</option>`).join('');
+}
+
+function selAo(el, lvl) {
+  document.querySelectorAll('.ao').forEach(a => a.classList.remove('sel'));
+  el.classList.add('sel');
+  currentAlert = lvl;
+}
+
+async function createTicket() {
+  const driver = document.getElementById('nDriver').value.trim();
+  const cat = document.getElementById('nCat').value;
+  const sub = document.getElementById('nSub').value;
+  if (!driver) { showToast('⚠ ID Yango requis', true); return; }
+  if (!cat) { showToast('⚠ Sélectionnez une catégorie', true); return; }
+  const btn = document.getElementById('createTktBtn');
+  btn.disabled=true; btn.textContent='Création...';
+  try {
+    const catText = document.getElementById('nCat').options[document.getElementById('nCat').selectedIndex].text;
+    const r = await api('POST','/tickets',{
+      driver_yango:driver, driver_nom:document.getElementById('nName').value,
+      driver_tel:document.getElementById('nTel').value, driver_plaque:document.getElementById('nPlate').value,
+      categorie:catText, sous_categorie:sub,
+      alerte:currentAlert, priorite:document.getElementById('nPrio').value,
+      notes:document.getElementById('nNotes').value
+    });
+    const msgs={STD:'✓ Ticket créé',PANNE:'🟡 Ticket panne créé — Superviseur notifié !',BLOCAGE:'🟠 Ticket créé — Fleet Manager alerté!',URGENCE:'🔴 URGENCE créée — FM + secours alertés!'};
+    showToast(msgs[currentAlert]||'✓ Ticket créé');
+    // Reset
+    ['nDriver','nName','nTel','nPlate','nNotes'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('nCat').value='';
+    document.getElementById('nSub').innerHTML='<option>— choisir catégorie —</option>';
+    document.getElementById('nPrio').value='normale';
+    document.querySelectorAll('.ao').forEach(a=>a.classList.remove('sel'));
+    document.querySelector('.ao-std').classList.add('sel');
+    currentAlert='STD';
+    goView('tickets');
+  } catch(e) { showToast(e.message,true); }
+  finally { btn.disabled=false; btn.textContent='Créer le ticket →'; }
+}
+
+// ══════════════════════════════════════════
+// AGENTS VIEW
+// ══════════════════════════════════════════
+async function loadAgents() {
+  document.getElementById('agentsList').innerHTML = '<div class="loading"><div class="loader"></div>Chargement...</div>';
+  try {
+    const users = await api('GET','/users');
+    if (!users) return;
+    const stats = await api('GET','/tickets/stats');
+
+    // KPIs
+    document.getElementById('agentsKPIs').innerHTML = `
+      ${kpi('Total agents',users.filter(u=>u.role==='agent').length,'var(--acc)')}
+      ${kpi('Tickets ouverts',stats?.total||0,'var(--ylw)')}
+      ${kpi('Tickets résolus',stats?.resolu||0,'var(--grn)')}
+      ${kpi('Urgences actives',stats?.urgences||0,'var(--red)')}`;
+
+    const roleMap={directeur:'👑 Directeur',superviseur:'🔰 Superviseur',agent:'👤 Agent'};
+    const bgMap={directeur:'role-dir-bg',superviseur:'role-sup-bg',agent:'role-agt-bg'};
+
+    document.getElementById('agentsList').innerHTML = users.map(u => `
+      <div class="agent-row">
+        <div class="agt-ava ${bgMap[u.role]||'role-agt-bg'}">${(u.prenom[0]+u.nom[0]).toUpperCase()}</div>
+        <div class="agt-info f1">
+          <div class="agt-name">${u.prenom} ${u.nom} ${u.actif?'<span class="online-dot"></span>':'<span class="offline-dot"></span>'}</div>
+          <div class="agt-email">${u.email} · ${roleMap[u.role]||u.role}</div>
+        </div>
+        <div class="agt-stats">
+          <div class="agt-stat"><div class="agt-stat-val" style="color:var(--acc)">${u.tickets_ouverts}</div><div class="agt-stat-lbl">Ouverts</div></div>
+          <div class="agt-stat"><div class="agt-stat-val" style="color:var(--grn)">${u.tickets_resolus}</div><div class="agt-stat-lbl">Résolus</div></div>
+          <div class="agt-stat"><div class="agt-stat-val">${u.tickets_total}</div><div class="agt-stat-lbl">Total</div></div>
+        </div>
+        <div class="flex gap4">
+          <button class="btn btn-ghost btn-xs" onclick="filterByAgent('${u.id}','${u.prenom} ${u.nom}')">Voir tickets</button>
+          ${ME.role==='directeur'?`<button class="btn btn-red btn-xs" onclick="toggleAgent('${u.id}',${u.actif})">${u.actif?'Désactiver':'Activer'}</button>`:''}
+        </div>
+      </div>`).join('');
+
+    // Load agents into filter
+    const sel = document.getElementById('tktAgent');
+    if (sel) {
+      sel.innerHTML = '<option value="">Tous agents</option>' +
+        users.filter(u=>u.role==='agent').map(u=>`<option value="${u.id}">${u.prenom} ${u.nom}</option>`).join('');
+    }
+  } catch(e) { document.getElementById('agentsList').innerHTML=`<div style="color:var(--red);padding:20px">${e.message}</div>`; }
+}
+
+async function toggleAgent(uid, actif) {
+  if (!confirm(actif?'Désactiver ce compte?':'Réactiver ce compte?')) return;
+  try {
+    await api('PATCH','/users/'+uid,{actif:actif?0:1});
+    showToast('Compte mis à jour');
+    loadAgents();
+  } catch(e) { showToast(e.message,true); }
+}
+
+function filterByAgent(agentId, name) {
+  document.getElementById('tktAgent') && (document.getElementById('tktAgent').value = agentId);
+  goView('tickets');
+}
+
+function openCreateAgent() { document.getElementById('agentModal').classList.add('on'); }
+function closeAgentModal() { document.getElementById('agentModal').classList.remove('on'); }
+
+async function createAgent() {
+  const nom=document.getElementById('aNom').value.trim();
+  const prenom=document.getElementById('aPrenom').value.trim();
+  const email=document.getElementById('aEmail').value.trim();
+  const pw=document.getElementById('aPw').value;
+  const role=document.getElementById('aRole').value;
+  if (!nom||!prenom||!email||!pw) { showToast('⚠ Tous les champs sont requis',true); return; }
+  try {
+    await api('POST','/users',{nom,prenom,email,password:pw,role});
+    showToast(`✓ Compte ${prenom} ${nom} créé`);
+    closeAgentModal();
+    ['aNom','aPrenom','aEmail','aPw'].forEach(id=>document.getElementById(id).value='');
+    loadAgents();
+  } catch(e) { showToast(e.message,true); }
+}
+
+// ══════════════════════════════════════════
+// ANALYTICS
+// ══════════════════════════════════════════
+async function loadAnalytics() {
+  try {
+    const [data, stats] = await Promise.all([api('GET','/analytics'), api('GET','/tickets/stats')]);
+    if (!data||!stats) return;
+
+    document.getElementById('analyticsKPIs').innerHTML = `
+      ${kpi('Total tickets',stats.total,'var(--acc)')}
+      ${kpi('Taux résolution', stats.total ? Math.round((stats.resolu/stats.total)*100)+'%' : '0%','var(--grn)')}
+      ${kpi('Urgences actives',stats.urgences,'var(--red)')}
+      ${kpi('Pannes actives',stats.pannes,'var(--ylw)')}`;
+
+    // Motifs chart
+    const colors={'App Yango':'var(--acc)','Panne / Véhicule':'var(--ylw)','Finance / Solde':'var(--grn)','Blocage Compte':'var(--org)','Accident / Urgence':'var(--red)','Documents / Administration':'var(--pur)'};
+    const total = data.motifs.reduce((a,m)=>a+m.n,0)||1;
+    document.getElementById('motifsChart').innerHTML = data.motifs.map(m => {
+      const pct = Math.round((m.n/total)*100);
+      const clr = Object.entries(colors).find(([k])=>m.categorie.includes(k.split('/')[0].trim()))?.[1]||'var(--acc)';
+      return `<div class="pbar-wrap">
+        <div class="pbar-top"><span class="pbar-lbl">${m.categorie}</span><span class="pbar-val">${m.n} tickets (${pct}%)</span></div>
+        <div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${clr}"></div></div>
+      </div>`;
+    }).join('');
+
+    // Agent perf
+    document.getElementById('agentPerf').innerHTML = data.par_agent.map(a => {
+      const pct = a.total ? Math.round((a.resolus/a.total)*100) : 0;
+      return `<div class="pbar-wrap">
+        <div class="pbar-top"><span class="pbar-lbl">${a.agent}</span><span class="pbar-val">${a.total} tickets · ${pct}% résolus</span></div>
+        <div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${pct>=80?'var(--grn)':pct>=50?'var(--ylw)':'var(--red)'}"></div></div>
+      </div>`;
+    }).join('');
+  } catch(e) { showToast(e.message,true); }
+}
+
+// ══════════════════════════════════════════
+// NOTIFICATIONS
+// ══════════════════════════════════════════
+async function loadNotifs() {
+  try {
+    const notifs = await api('GET','/notifications');
+    if (!notifs) return;
+    const unread = notifs.filter(n=>!n.lu).length;
+    const countEl = document.getElementById('notifCount');
+    if (unread > 0) { countEl.textContent=unread; countEl.classList.remove('hidden'); }
+    else countEl.classList.add('hidden');
+    document.getElementById('notifText').textContent = unread > 0 ? `${unread} alertes` : 'Alertes';
+
+    document.getElementById('notifList').innerHTML = notifs.length ?
+      notifs.map(n => `<div class="notif-item ${n.lu?'':'ni-unread'}" onclick="openTicket('${n.ticket_id}');closeNotif()">
+        <span class="ni-ico">${n.type==='alerte'?'🔴':'🔔'}</span>
+        <div><div class="ni-title">${n.titre}</div><div class="ni-msg">${n.message}</div><div class="ni-ts">${fmtDate(n.created_at)}</div></div>
+      </div>`).join('') :
+      '<div style="padding:16px;text-align:center;color:var(--t3);font-size:12px">Aucune notification</div>';
+  } catch {}
+}
+
+function toggleNotif() {
+  notifOpen = !notifOpen;
+  document.getElementById('notifPanel').classList.toggle('on', notifOpen);
+  if (notifOpen) loadNotifs();
+}
+
+function closeNotif() { notifOpen=false; document.getElementById('notifPanel').classList.remove('on'); }
+
+async function markAllRead() {
+  await api('POST','/notifications/read-all');
+  loadNotifs();
+  showToast('✓ Toutes les notifications marquées comme lues');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.notif-panel') && !e.target.closest('.notif-btn') && !e.target.closest('.user-chip')) closeNotif();
+});
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+function statusBadge(s) {
+  const m={'Nouveau':'b-nouveau','En cours':'b-encours','Escaladé':'b-escalade','Résolu':'b-resolu','Clôturé':'b-cloture'};
+  return `<span class="badge ${m[s]||'b-nouveau'}">${s}</span>`;
+}
+function prioBadge(p) {
+  const m={critique:'b-critique',haute:'b-haute',normale:'b-normale',basse:'b-basse'};
+  return `<span class="badge ${m[p]||'b-normale'}">${p}</span>`;
+}
+function alertColor(a) { return {URGENCE:'var(--red)',PANNE:'var(--ylw)',BLOCAGE:'var(--org)',APPLICATION:'var(--acc)',STD:'var(--b2)'}[a]||'var(--b2)'; }
+
+function fmtDate(iso) {
+  if (!iso) return '-';
+  try { return new Date(iso).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+  catch { return iso.slice(0,10); }
+}
+function fmtTime(iso) {
+  if (!iso) return '';
+  try { return new Date(iso).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}); }
+  catch { return ''; }
+}
+function ageStr(iso, statut) {
+  if (!iso) return '-';
+  if (['Résolu','Clôturé'].includes(statut)) return '✓ Résolu';
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff/60000);
+  if (mins < 60) return `${mins}min`;
+  const hrs = Math.floor(mins/60);
+  if (hrs < 24) return `${hrs}h${mins%60}min`;
+  return `${Math.floor(hrs/24)}j`;
+}
+function ageColor(iso, statut) {
+  if (['Résolu','Clôturé'].includes(statut)) return 'var(--grn)';
+  const mins = Math.floor((Date.now()-new Date(iso).getTime())/60000);
+  return mins > 120 ? 'var(--red)' : mins > 30 ? 'var(--ylw)' : 'var(--grn)';
+}
+
+// TOAST
+function showToast(msg, isErr) {
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast'+(isErr?' err':'');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>el.classList.add('on'),10);
+  setTimeout(()=>{el.classList.remove('on');setTimeout(()=>el.remove(),400);},3500);
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+if (TOKEN && ME) {
+  try { enterApp(); } catch { logout(); }
+}
+</script>
+</body>
+</html>
