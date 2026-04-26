@@ -427,6 +427,49 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
 .sh-title{font-family:var(--disp);font-size:13.5px;font-weight:800;}
 .sh-action{font-size:11px;color:var(--acc);cursor:pointer;background:none;border:none;font-family:var(--mono);}
 
+/* ══ MOBILE RESPONSIVE ══ */
+.burger-btn{display:none;align-items:center;justify-content:center;width:36px;height:36px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;cursor:pointer;font-size:18px;color:var(--t1);flex-shrink:0;}
+.sidebar-overlay{display:none;position:fixed;inset:0;top:56px;background:rgba(0,0,0,.55);z-index:199;}
+.sidebar-overlay.on{display:block;}
+
+@media(max-width:768px){
+  #app{grid-template-columns:1fr!important;grid-template-rows:56px 1fr!important;}
+  .sidebar{position:fixed;left:-240px;top:56px;bottom:0;width:240px;z-index:200;transition:left .25s ease;box-shadow:4px 0 24px rgba(0,0,0,.6);}
+  .sidebar.mobile-open{left:0;}
+  .burger-btn{display:flex!important;}
+  .tl-label{display:none;}
+  .live{display:none;}
+  .user-name,.user-role-badge{display:none;}
+  .topbar{padding:0 12px;gap:8px;}
+  .main-area{grid-column:1!important;}
+  .view{padding:12px!important;gap:10px!important;}
+  .view-title{font-size:15px!important;}
+  .kpi-row-4,.kpi-row-5{grid-template-columns:1fr 1fr!important;}
+  .kpi-val{font-size:22px!important;}
+  .kpi{padding:10px 12px!important;}
+  .tbl-wrap{overflow-x:auto;}
+  .tbl{min-width:580px;}
+  .filter-bar{gap:6px!important;flex-wrap:wrap;}
+  .filter-bar input{min-width:100%!important;}
+  .form-grid2,.form-grid3{grid-template-columns:1fr!important;}
+  .modal{width:96vw!important;margin:8px auto!important;}
+  .modal-grid{grid-template-columns:1fr!important;}
+  .modal-body{padding:12px!important;}
+  .modal-head{padding:14px 14px 0!important;}
+  .agent-row{flex-wrap:wrap;gap:8px;}
+  .agt-stats{gap:10px;}
+  .tkt-card{flex-wrap:wrap;}
+  .alert-sel{grid-template-columns:1fr 1fr!important;}
+  .theme-panel{right:8px!important;}
+  .notif-panel{width:96vw!important;right:2vw!important;}
+  .sf{flex-wrap:wrap;gap:4px;}
+  .login-box{width:95vw!important;padding:24px 18px!important;}
+  .dash-grid{grid-template-columns:1fr!important;}
+  .tb-right{gap:6px;}
+  .btn-sm{padding:4px 8px!important;font-size:10px!important;}
+  .btn-xs{padding:3px 6px!important;font-size:9px!important;}
+}
+
 </style>
 </head>
 <body>
@@ -464,6 +507,7 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
 <div id="app" class="hidden">
   <!-- TOPBAR -->
   <header class="topbar">
+    <button class="burger-btn" id="burgerBtn" onclick="toggleSidebar()">☰</button>
     <div class="tl">
       <div class="tl-sq">T</div>
       <div>SynDongo<span class="tl-label">Suivi &amp; Clôture des Demandes</span></div>
@@ -500,6 +544,7 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
 
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar"></aside>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
   <!-- MAIN -->
   <main class="main-area">
@@ -907,6 +952,7 @@ function buildSidebar() {
       <div class="sb-sec">Compte</div>
       <button class="sb-item" onclick="goView('profile')"><span class="sb-ico">👤</span>Mon profil</button>`;
   sb.innerHTML = html;
+  document.querySelectorAll('.sb-item').forEach(b=>b.addEventListener('click',()=>{if(window.innerWidth<=768)closeSidebar();}));
 }
 
 function goViewFilter(view, statut) {
@@ -1570,6 +1616,20 @@ function showFullHistory() {
     ? `<div class="act-sys">🤖 ${a.contenu} · ${fmtTime(a.created_at)}</div>`
     : `<div class="act-item"><div class="act-av" style="background:var(--acc)">${a.user_nom.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div><div class="act-box"><div class="act-who">${a.user_nom}</div><div class="act-txt">${a.contenu}</div><div class="act-ts">${fmtDate(a.created_at)} ${fmtTime(a.created_at)}</div></div></div>`;
   feed.innerHTML = window._ticketActFull.map(fmtA).join('');
+}
+
+// ══════════════════════════════════════════
+// SIDEBAR MOBILE
+// ══════════════════════════════════════════
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  const ov=document.getElementById('sidebarOverlay');
+  if(sb.classList.contains('mobile-open')){closeSidebar();}
+  else{sb.classList.add('mobile-open');ov.classList.add('on');}
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebarOverlay').classList.remove('on');
 }
 
 // ══════════════════════════════════════════
