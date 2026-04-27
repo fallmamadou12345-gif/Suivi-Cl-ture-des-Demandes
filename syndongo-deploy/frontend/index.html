@@ -651,7 +651,10 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
     <!-- VIEW: Agents (superviseur / directeur) -->
     <div class="view" id="view-agents">
       <div class="flex ai-c jc-sb"><div class="view-title">👥 Gestion des agents</div>
-        <button class="btn btn-acc btn-sm" onclick="openCreateAgent()">+ Créer un compte</button>
+        <div class="flex gap8">
+          <button class="btn btn-acc btn-sm" onclick="openCreateAgent()">+ Créer un compte</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV('agents')">📥 Exporter CSV</button>
+        </div>
       </div>
       <div class="kpi-row kpi-row-4" id="agentsKPIs"></div>
       <div class="filter-bar" style="margin-bottom:0">
@@ -676,7 +679,13 @@ select.form-select-sm{background:var(--bg);border:1px solid var(--b2);border-rad
 
     <!-- VIEW: Analytics (superviseur / directeur) -->
     <div class="view" id="view-analytics">
-      <div class="view-title">📊 Analytics & Performance</div>
+      <div class="flex ai-c jc-sb" style="margin-bottom:4px">
+        <div class="view-title" style="margin-bottom:0">📊 Analytics & Performance</div>
+        <div class="flex gap8">
+          <button class="btn btn-grn btn-sm" onclick="exportCSV('tickets')">📥 Exporter tickets CSV</button>
+          <button class="btn btn-acc btn-sm" onclick="exportCSV('agents')">👥 Exporter agents CSV</button>
+        </div>
+      </div>
       <div class="kpi-row kpi-row-4" id="analyticsKPIs"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
         <div class="card p16">
@@ -1494,6 +1503,21 @@ document.addEventListener('click', e => {
 });
 
 // ══════════════════════════════════════════
+function exportCSV(type) {
+  const url = API + '/export/' + type;
+  fetch(url, {headers:{'Authorization':'Bearer '+TOKEN}})
+    .then(r => r.blob())
+    .then(blob => {
+      const u = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = u;
+      a.download = 'syndongo_' + type + '_' + new Date().toISOString().slice(0,10) + '.csv';
+      a.click();
+      URL.revokeObjectURL(u);
+      showToast('✅ Export CSV téléchargé - importez dans Google Sheets !');
+    }).catch(e => showToast('Erreur export: ' + e.message, true));
+}
+
 // HELPERS
 // ══════════════════════════════════════════
 function statusBadge(s) {

@@ -444,6 +444,62 @@ def get_user_history(user_id: str, user=Depends(require_role("superviseur","dire
     conn.close()
     return [dict(r) for r in rows]
 
+# ── EXPORT CSV ──
+
+@app.get("/export/tickets")
+def export_tickets_csv(user=Depends(require_role("superviseur","directeur"))):
+    import csv, io
+    conn = get_db()
+    tickets = conn.execute("""
+        SELECT t.numero, t.driver_nom, t.driver_yango, t.driver_tel, t.driver_plaque,
+               t.categorie, t.sous_categorie, t.alerte, t.priorite, t.statut,
+               t.notes, u.nom||' '||u.prenom as agent, t.created_at, t.updated_at, t.resolved_at
+        FROM tickets t LEFT JOIN users u ON t.agent_id=u.id
+        ORDER BY t.created_at DESC
+    """).fetchall()
+    conn.close()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['N°Ticket','Chauffeur','ID Yango','Téléphone','Plaque',
+                     'Catégorie','Sous-catégorie','Alerte','Priorité','Statut',
+                     'Notes','Agent','Créé le','Modifié le','Résolu le'])
+    for t in tickets:
+        writer.writerow(list(t))
+    output.seek(0)
+    from fastapi.responses import Response
+    return Response(
+        content=output.getvalue().encode('utf-8-sig'),
+        media_type='text/csv',
+        headers={'Content-Disposition': f'attachment; filename=syndongo_tickets_{datetime.date.today()}.csv'}
+    )
+
+@app.get("/export/agents")
+def export_agents_csv(user=Depends(require_role("directeur"))):
+    import csv, io
+    conn = get_db()
+    agents = conn.execute("""
+        SELECT u.nom, u.prenom, u.email, u.role,
+               CASE WHEN u.actif=1 THEN 'Actif' ELSE 'Inactif' END as statut,
+               u.created_at, u.last_login,
+               COUNT(t.id) as total_tickets,
+               SUM(CASE WHEN t.statut IN ('Résolu','Clôturé') THEN 1 ELSE 0 END) as resolus
+        FROM users u LEFT JOIN tickets t ON u.id=t.agent_id
+        GROUP BY u.id ORDER BY u.role, u.nom
+    """).fetchall()
+    conn.close()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Nom','Prénom','Email','Rôle','Statut','Créé le','Dernière connexion','Total tickets','Tickets résolus'])
+    for a in agents:
+        writer.writerow(list(a))
+    output.seek(0)
+    from fastapi.responses import Response
+    return Response(
+        content=output.getvalue().encode('utf-8-sig'),
+        media_type='text/csv',
+        headers={'Content-Disposition': f'attachment; filename=syndongo_agents_{datetime.date.today()}.csv'}
+    )
+
 # ── NOTIFICATIONS ──
 
 @app.get("/notifications")
