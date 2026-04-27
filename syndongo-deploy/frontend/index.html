@@ -1372,9 +1372,9 @@ async function loadAgents() {
     _allAgents = users;
 
     document.getElementById('agentsKPIs').innerHTML = `
-      ${kpi('Total agents',users.filter(u=>u.role==='agent').length,'var(--acc)')}
-      ${kpi('Tickets ouverts',stats?.total||0,'var(--ylw)')}
-      ${kpi('Tickets résolus',stats?.resolu||0,'var(--grn)')}
+      ${kpi('Total comptes',users.length,'var(--acc)')}
+      ${kpi('Agents actifs',users.filter(u=>u.role==='agent'&&u.actif).length,'var(--grn)')}
+      ${kpi('Tickets ouverts',(stats?.nouveau||0)+(stats?.en_cours||0)+(stats?.escalade||0),'var(--ylw)')}
       ${kpi('Urgences actives',stats?.urgences||0,'var(--red)')}`;
 
     renderAgentsList(users);
